@@ -1,0 +1,20 @@
+FROM node:22-alpine AS builder
+
+WORKDIR /app
+
+COPY package*.json ./
+COPY packages/types/package*.json ./packages/types/
+COPY apps/patient-mobile/package*.json ./apps/patient-mobile/
+
+RUN npm install
+
+COPY packages/types ./packages/types
+COPY apps/patient-mobile ./apps/patient-mobile
+
+WORKDIR /app/apps/patient-mobile
+RUN npm run build
+
+FROM nginx:alpine
+COPY --from=builder /app/apps/patient-mobile/dist /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]

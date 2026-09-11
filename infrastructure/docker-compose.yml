@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: phc-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: phc_admin
+      POSTGRES_PASSWORD: phc_secure_password_2026
+      POSTGRES_DB: phc_connect_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  api:
+    build:
+      context: ..
+      dockerfile: infrastructure/Dockerfile.api
+    container_name: phc-api
+    restart: always
+    environment:
+      PORT: 5000
+      DATABASE_URL: postgresql://phc_admin:phc_secure_password_2026@postgres:5432/phc_connect_db?schema=public
+      JWT_SECRET: phc-connect-production-secret-2026
+      NODE_ENV: production
+    ports:
+      - "5000:5000"
+    depends_on:
+      - postgres
+
+  patient-mobile:
+    build:
+      context: ..
+      dockerfile: infrastructure/Dockerfile.patient
+    container_name: phc-patient-mobile
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+  web-dashboard:
+    build:
+      context: ..
+      dockerfile: infrastructure/Dockerfile.dashboard
+    container_name: phc-web-dashboard
+    restart: always
+    ports:
+      - "3001:3001"
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:
