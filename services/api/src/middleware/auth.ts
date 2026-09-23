@@ -15,6 +15,7 @@ export interface AuthRequest extends Request {
     doctorId?: string;
     pharmacistId?: string;
     adminId?: string;
+    receptionistId?: string;
     phcId?: string;
   };
 }

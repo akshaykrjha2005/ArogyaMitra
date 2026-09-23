@@ -4,5 +4,9 @@
   "description": "Shared TypeScript types for PHC Connect (ArogyaMitra)",
   "main": "src/index.ts",
   "types": "src/index.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "echo types-ready"
+  },
   "private": true
 }

@@ -54,7 +54,19 @@ export const SymptomChatbotScreen: React.FC<Props> = ({
       header: 'AI Symptom Assessment',
       subHeader: 'Conversational Clinical Triage Engine',
       intro: `Hello ${patient?.fullName?.split(' ')[0] || 'there'}! I am your AI Health Triage Assistant. Please select or type the main symptoms you are experiencing today.`,
-      chipsSymptom: ['High Fever', 'Dry Cough', 'Chest Pain', 'Shortness of Breath', 'Stomach Pain', 'Skin Rash / Itching', 'Severe Headache', 'Joint Stiffness'],
+      chipsSymptom: [
+        'High Fever with Chills',
+        'Persistent Dry Cough',
+        'Chest Pain / Tightness',
+        'Shortness of Breath / Wheezing',
+        'Severe Joint & Bone Pain',
+        'Burning Urination / Frequency',
+        'Stomach Cramps & Vomiting',
+        'Watery Diarrhea / Loose Stools',
+        'Skin Rash & Itching',
+        'Throbbing One-Sided Headache',
+        'Excessive Thirst & Night Urination',
+      ],
       qDuration: 'How long have you been experiencing these symptoms?',
       chipsDuration: ['Less than 24 hours', '1 - 3 days', '4 - 7 days', 'More than a week'],
       qSeverity: 'How severe would you describe the discomfort / pain?',
@@ -72,7 +84,19 @@ export const SymptomChatbotScreen: React.FC<Props> = ({
       header: 'एआई लक्षण मूल्यांकन',
       subHeader: 'डिजिटल प्राथमिक स्वास्थ्य ट्राइएज',
       intro: `नमस्ते! मैं आपका एआई स्वास्थ्य सहायक हूँ। कृपया आज आपको हो रहे मुख्य लक्षणों का चयन करें या लिखें।`,
-      chipsSymptom: ['तेज बुखार', 'सूखी खांसी', 'सीने में दर्द', 'सांस लेने में तकलीफ', 'पेट दर्द', 'त्वचा पर दाने / खुजली', 'तेज सिरदर्द', 'जोड़ों में दर्द'],
+      chipsSymptom: [
+        'कंपकंपी के साथ तेज बुखार',
+        'लगातार सूखी खांसी',
+        'सीने में दर्द या भारीपन',
+        'सांस फूलना या घरघराहट',
+        'जोड़ों और हड्डियों में तेज दर्द',
+        'पेशाब में जलन / बार-बार पेशाब',
+        'पेट दर्द और उल्टी',
+        'पतले दस्त / दस्त',
+        'त्वचा पर दाने और खुजली',
+        'आधे सिर में तेज दर्द (माइग्रेन)',
+        'अधिक प्यास और बार-बार पेशाब',
+      ],
       qDuration: 'आप कितने समय से इन लक्षणों का अनुभव कर रहे हैं?',
       chipsDuration: ['24 घंटे से कम', '1 - 3 दिन', '4 - 7 दिन', 'एक सप्ताह से अधिक'],
       qSeverity: 'आपकी तकलीफ की गंभीरता कितनी है?',
@@ -90,7 +114,19 @@ export const SymptomChatbotScreen: React.FC<Props> = ({
       header: 'ಎಐ ರೋಗಲಕ್ಷಣ ಮೌಲ್ಯಮಾಪನ',
       subHeader: 'ಸಂಭಾಷಣಾ ಕ್ಲಿನಿಕಲ್ ಟ್ರಯೇಜ್ ಎಂಜಿನ್',
       intro: `ನಮಸ್ಕಾರ! ನಾನು ನಿಮ್ಮ ಎಐ ಆರೋಗ್ಯ ಟ್ರಯೇಜ್ ಸಹಾಯಕ. ದಯವಿಟ್ಟು ಇಂದು ನೀವು ಎದುರಿಸುತ್ತಿರುವ ಪ್ರಮುಖ ರೋಗಲಕ್ಷಣಗಳನ್ನು ಆಯ್ಕೆಮಾಡಿ ಅಥವಾ ಟೈಪ್ ಮಾಡಿ.`,
-      chipsSymptom: ['ತೀವ್ರ ಜ್ವರ', 'ಒಣ ಕೆಮ್ಮು', 'ಎದೆ ನೋವು', 'ಉಸಿರಾಟದ ತೊಂದರೆ', 'ಹೊಟ್ಟೆ ನೋವು', 'ಚರ್ಮದ ದದ್ದು / ತುರಿಕೆ', 'ತೀವ್ರ ತಲೆನೋವು', 'ಕೀಲು ನೋವು'],
+      chipsSymptom: [
+        'ಚಳಿಯೊಂದಿಗೆ ತೀವ್ರ ಜ್ವರ',
+        'ನಿರಂತರ ಒಣ ಕೆಮ್ಮು',
+        'ಎದೆ ನೋವು ಅಥವಾ ಬಿಗಿತ',
+        'ಉಸಿರಾಟದ ತೊಂದರೆ / ಉಬ್ಬಸ',
+        'ತೀವ್ರ ಕೀಲು ಮತ್ತು ಮೂಳೆ ನೋವು',
+        'ಮೂತ್ರ ವಿಸರ್ಜನೆಯಲ್ಲಿ ಉರಿ',
+        'ಹೊಟ್ಟೆ ನೋವು ಮತ್ತು ವಾಂತಿ',
+        'ನೀರಿನಂತಹ ಅತಿಸಾರ',
+        'ಚರ್ಮದ ದದ್ದು ಮತ್ತು ತುರಿಕೆ',
+        'ಒಂದು ಬದಿಯ ತಲೆನೋವು (ಮೈಗ್ರೇನ್)',
+        'ಹೆಚ್ಚಿನ ಬಾಯಾರಿಕೆ ಮತ್ತು ಪದೇ ಪದೇ ಮೂತ್ರ',
+      ],
       qDuration: 'ನೀವು ಎಷ್ಟು ಸಮಯದಿಂದ ಈ ರೋಗಲಕ್ಷಣಗಳನ್ನು ಹೊಂದಿದ್ದೀರಿ?',
       chipsDuration: ['24 ಗಂಟೆಗಿಂತ ಕಡಿಮೆ', '1 - 3 ದಿನಗಳು', '4 - 7 ದಿನಗಳು', 'ಒಂದು ವಾರಕ್ಕಿಂತ ಹೆಚ್ಚು'],
       qSeverity: 'ನೋವು ಅಥವಾ ತೊಂದರೆಯ ತೀವ್ರತೆ ಎಷ್ಟಿದೆ?',
@@ -397,15 +433,39 @@ export const SymptomChatbotScreen: React.FC<Props> = ({
                 marginTop: '8px',
                 boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
               }}>
-                {/* Criticality Badge */}
+                {/* Criticality Badge & Model Tag */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                  <span style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', color: '#64748b' }}>
-                    Triage Criticality
+                  <span style={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', color: '#0284c7', background: '#e0f2fe', padding: '2px 8px', borderRadius: '6px' }}>
+                    {msg.assessment.aiModel || 'ICD-10 Clinical Triage'}
                   </span>
                   <span className={`badge badge-${msg.assessment.riskLevel.toLowerCase()}`}>
                     {msg.assessment.riskLevel === 'EMERGENCY' ? '🚨 EMERGENCY' : `${msg.assessment.riskLevel} CRITICALITY`}
                   </span>
                 </div>
+
+                {/* Emergency Red-Flags Banner if Triggered */}
+                {msg.assessment.emergencyRedFlags && msg.assessment.emergencyRedFlags.length > 0 && (
+                  <div
+                    style={{
+                      background: '#fef2f2',
+                      border: '1px solid #fecaca',
+                      borderRadius: '12px',
+                      padding: '12px',
+                      marginBottom: '12px',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#dc2626', fontWeight: 800, fontSize: '12px' }}>
+                      <AlertOctagon size={16} /> Red-Flag Symptoms Detected
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
+                      {msg.assessment.emergencyRedFlags.map((rf, idx) => (
+                        <span key={idx} style={{ fontSize: '10px', fontWeight: 700, background: '#fee2e2', color: '#991b1b', padding: '2px 6px', borderRadius: '4px' }}>
+                          ⚠️ {rf}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Recommendation Box */}
                 <div style={{
@@ -423,7 +483,7 @@ export const SymptomChatbotScreen: React.FC<Props> = ({
                   </p>
                 </div>
 
-                {/* Explanation */}
+                {/* Clinical Explanation */}
                 <div style={{ marginBottom: '14px' }}>
                   <h4 style={{ fontSize: '12px', fontWeight: 700, color: '#1e293b', marginBottom: '4px' }}>
                     Clinical Rationale & Reasoning:
@@ -433,40 +493,121 @@ export const SymptomChatbotScreen: React.FC<Props> = ({
                   </p>
                 </div>
 
-                {/* Possible Conditions */}
+                {/* High-Precision Differential Possibilities */}
                 <div style={{ marginBottom: '14px' }}>
                   <h4 style={{ fontSize: '12px', fontWeight: 700, color: '#1e293b', marginBottom: '6px' }}>
-                    Preliminary Possibilities Considered:
+                    Preliminary Possibilities Considered ({msg.assessment.possibleConditions.length}):
                   </h4>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    {msg.assessment.possibleConditions.map((cond, idx) => (
-                      <div
-                        key={idx}
-                        style={{
-                          background: '#f8fafc',
-                          border: '1px solid #e2e8f0',
-                          borderRadius: '10px',
-                          padding: '8px 10px',
-                        }}
-                      >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ fontSize: '12px', fontWeight: 700, color: '#1e293b' }}>{cond.name}</span>
-                          <span style={{
-                            fontSize: '10px',
-                            fontWeight: 700,
-                            color: cond.probability === 'High' ? '#dc2626' : '#d97706',
-                            background: cond.probability === 'High' ? '#fef2f2' : '#fffbeb',
-                            padding: '2px 6px',
-                            borderRadius: '4px',
-                          }}>
-                            {cond.probability} Match
-                          </span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {msg.assessment.possibleConditions.map((cond, idx) => {
+                      const confidence = cond.confidenceScore || (cond.probability === 'High' ? 88 : cond.probability === 'Moderate' ? 65 : 40);
+                      return (
+                        <div
+                          key={idx}
+                          style={{
+                            background: '#f8fafc',
+                            border: '1px solid #e2e8f0',
+                            borderRadius: '12px',
+                            padding: '10px 12px',
+                          }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <span style={{ fontSize: '12px', fontWeight: 800, color: '#0f172a' }}>{cond.name}</span>
+                              {cond.icd10Code && (
+                                <span style={{ fontSize: '9px', fontWeight: 700, background: '#dbeafe', color: '#1e40af', padding: '1px 5px', borderRadius: '4px' }}>
+                                  ICD: {cond.icd10Code}
+                                </span>
+                              )}
+                            </div>
+                            <span style={{
+                              fontSize: '11px',
+                              fontWeight: 800,
+                              color: confidence >= 75 ? '#dc2626' : confidence >= 50 ? '#d97706' : '#64748b',
+                              background: confidence >= 75 ? '#fef2f2' : confidence >= 50 ? '#fffbeb' : '#f1f5f9',
+                              padding: '2px 8px',
+                              borderRadius: '6px',
+                            }}>
+                              {confidence}% Match
+                            </span>
+                          </div>
+
+                          {/* Confidence Bar */}
+                          <div style={{ height: '4px', width: '100%', background: '#e2e8f0', borderRadius: '2px', margin: '6px 0', overflow: 'hidden' }}>
+                            <div
+                              style={{
+                                height: '100%',
+                                width: `${confidence}%`,
+                                background: confidence >= 75 ? 'linear-gradient(90deg, #f97316, #ef4444)' : 'linear-gradient(90deg, #3b82f6, #10b981)',
+                                borderRadius: '2px',
+                              }}
+                            />
+                          </div>
+
+                          <p style={{ fontSize: '11px', color: '#475569', margin: '4px 0 0 0', lineHeight: '1.3' }}>
+                            {cond.description}
+                          </p>
+
+                          {/* Contributing Symptoms */}
+                          {cond.contributingSymptoms && cond.contributingSymptoms.length > 0 && (
+                            <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '6px' }}>
+                              <span style={{ fontSize: '9px', fontWeight: 700, color: '#64748b' }}>Key Indicators:</span>
+                              {cond.contributingSymptoms.map((sym, i) => (
+                                <span key={i} style={{ fontSize: '9px', background: '#ffffff', border: '1px solid #cbd5e1', padding: '1px 5px', borderRadius: '4px', color: '#334155' }}>
+                                  ✓ {sym}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </div>
-                        <p style={{ fontSize: '10px', color: '#64748b', marginTop: '2px' }}>{cond.description}</p>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
+
+                {/* Recommended Diagnostic Tests Box */}
+                {msg.assessment.recommendedDiagnosticTests && msg.assessment.recommendedDiagnosticTests.length > 0 && (
+                  <div
+                    style={{
+                      background: '#f0f9ff',
+                      border: '1px solid #bae6fd',
+                      borderRadius: '12px',
+                      padding: '12px',
+                      marginBottom: '12px',
+                    }}
+                  >
+                    <div style={{ fontSize: '11px', fontWeight: 800, color: '#0369a1', textTransform: 'uppercase', marginBottom: '6px' }}>
+                      🧪 Recommended Tests at PHC / Diagnostic Lab:
+                    </div>
+                    <ul style={{ margin: 0, paddingLeft: '16px', fontSize: '11px', color: '#0c4a6e', lineHeight: '1.4' }}>
+                      {msg.assessment.recommendedDiagnosticTests.map((test, idx) => (
+                        <li key={idx}><strong>{test}</strong></li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Supportive Home Care Tips */}
+                {msg.assessment.supportiveCareMeasures && msg.assessment.supportiveCareMeasures.length > 0 && (
+                  <div
+                    style={{
+                      background: '#f0fdf4',
+                      border: '1px solid #bbf7d0',
+                      borderRadius: '12px',
+                      padding: '12px',
+                      marginBottom: '12px',
+                    }}
+                  >
+                    <div style={{ fontSize: '11px', fontWeight: 800, color: '#15803d', textTransform: 'uppercase', marginBottom: '6px' }}>
+                      🏡 Supportive Home Care & First-Aid:
+                    </div>
+                    <ul style={{ margin: 0, paddingLeft: '16px', fontSize: '11px', color: '#14532d', lineHeight: '1.4' }}>
+                      {msg.assessment.supportiveCareMeasures.map((tip, idx) => (
+                        <li key={idx}>{tip}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
                 {/* Uploaded Photo Notes Preview */}
                 {msg.assessment.photoAnalysisNotes && (

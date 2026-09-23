@@ -18,9 +18,11 @@ import { apiClient } from '../services/api';
 
 interface Props {
   pharmacistId: string;
+  activeTab?: 'inventory' | 'dispense' | 'alerts';
+  onSelectTab?: (tab: 'inventory' | 'dispense' | 'alerts') => void;
 }
 
-export const PharmacistDashboard: React.FC<Props> = ({ pharmacistId }) => {
+export const PharmacistDashboard: React.FC<Props> = ({ pharmacistId, activeTab = 'inventory', onSelectTab }) => {
   const [metrics, setMetrics] = useState<any>({
     totalMedicines: 0,
     inStockCount: 0,
@@ -60,6 +62,16 @@ export const PharmacistDashboard: React.FC<Props> = ({ pharmacistId }) => {
   useEffect(() => {
     loadPharmacistData();
   }, [pharmacistId]);
+
+  useEffect(() => {
+    if (activeTab === 'alerts') {
+      setStatusFilter('low');
+    } else if (activeTab === 'dispense') {
+      setIsDispenseModalOpen(true);
+    } else if (activeTab === 'inventory') {
+      setStatusFilter('all');
+    }
+  }, [activeTab]);
 
   const loadPharmacistData = async () => {
     try {

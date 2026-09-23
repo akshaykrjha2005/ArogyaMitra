@@ -17,7 +17,12 @@ import {
 import { AdminAnalyticsSummary, DoctorProfile, PHC } from '@phc-connect/types';
 import { apiClient } from '../services/api';
 
-export const AdminDashboard: React.FC = () => {
+interface Props {
+  activeTab?: 'analytics' | 'roster' | 'audit';
+  onSelectTab?: (tab: 'analytics' | 'roster' | 'audit') => void;
+}
+
+export const AdminDashboard: React.FC<Props> = ({ activeTab = 'analytics', onSelectTab }) => {
   const [analytics, setAnalytics] = useState<AdminAnalyticsSummary | null>(null);
   const [doctors, setDoctors] = useState<DoctorProfile[]>([]);
   const [phcs, setPhcs] = useState<PHC[]>([]);

@@ -9,7 +9,8 @@
     "apps/*"
   ],
   "scripts": {
-    "dev": "npm run dev --workspaces",
+    "dev": "concurrently -n \"API,PATIENT,DASHBOARD\" -c \"blue,green,magenta\" \"npm run dev:api\" \"npm run dev:patient\" \"npm run dev:dashboard\"",
+    "dev:all": "concurrently -n \"API,PATIENT,DASHBOARD\" -c \"blue,green,magenta\" \"npm run dev:api\" \"npm run dev:patient\" \"npm run dev:dashboard\"",
     "dev:api": "npm --workspace=services/api run dev",
     "dev:patient": "npm --workspace=apps/patient-mobile run dev",
     "dev:dashboard": "npm --workspace=apps/web-dashboard run dev",
@@ -25,5 +26,8 @@
     "ai-healthcare"
   ],
   "author": "PHC Connect Team",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^10.0.5"
+  }
 }

@@ -6,6 +6,7 @@ import { PHCController } from '../controllers/phcController';
 import { AppointmentController } from '../controllers/appointmentController';
 import { ConsultationController } from '../controllers/consultationController';
 import { PharmacistController } from '../controllers/pharmacistController';
+import { ReceptionistController } from '../controllers/receptionistController';
 import { MedicineController } from '../controllers/medicineController';
 import { SymptomController } from '../controllers/symptomController';
 import { AnalyticsController } from '../controllers/analyticsController';
@@ -15,6 +16,7 @@ import { authenticateToken } from '../middleware/auth';
 const router = Router();
 
 // 1. Auth Endpoints
+router.post('/auth/send-otp', AuthController.sendOtp);
 router.post('/auth/register', AuthController.registerPatient);
 router.post('/auth/login', AuthController.login);
 router.post('/auth/verify-otp', AuthController.verifyOtp);
@@ -26,6 +28,8 @@ router.get('/patients/me/records', authenticateToken, PatientController.getMedic
 router.get('/patients/me/appointments', authenticateToken, PatientController.getAppointments);
 router.get('/patients', authenticateToken, PatientController.getAllPatients);
 router.get('/patients/:id', authenticateToken, PatientController.getProfile);
+router.get('/patients/:id/records', authenticateToken, PatientController.getMedicalRecords);
+router.get('/patients/:id/appointments', authenticateToken, PatientController.getAppointments);
 router.put('/patients/:id', authenticateToken, PatientController.updateProfile);
 
 // 3. AI Symptom Assessment Endpoints
@@ -58,11 +62,18 @@ router.delete('/appointments/:id', authenticateToken, AppointmentController.canc
 router.post('/doctor/consultation', authenticateToken, ConsultationController.recordConsultation);
 router.get('/records/:id', authenticateToken, ConsultationController.getRecordById);
 
-// 8. Public Medicine Availability
+// 8. Receptionist & Pre-Consultation Endpoints
+router.get('/receptionist/overview', authenticateToken, ReceptionistController.getOverview);
+router.get('/receptionist/patients', authenticateToken, ReceptionistController.searchPatients);
+router.post('/receptionist/patient', authenticateToken, ReceptionistController.registerPatient);
+router.post('/receptionist/checkup', authenticateToken, ReceptionistController.recordCheckup);
+router.get('/receptionist/checkups', authenticateToken, ReceptionistController.getCheckups);
+
+// 9. Public Medicine Availability
 router.get('/medicines/availability', MedicineController.getPublicMedicineCatalog);
 router.get('/medicines/categories', MedicineController.getCategories);
 
-// 9. Pharmacist & Inventory Endpoints
+// 10. Pharmacist & Inventory Endpoints
 router.get('/pharmacist/overview', authenticateToken, PharmacistController.getInventoryOverview);
 router.get('/pharmacist/inventory', authenticateToken, PharmacistController.getAllInventory);
 router.post('/pharmacist/inventory', authenticateToken, PharmacistController.addMedicine);
@@ -70,10 +81,10 @@ router.patch('/pharmacist/inventory/:id', authenticateToken, PharmacistControlle
 router.post('/pharmacist/dispense', authenticateToken, PharmacistController.dispenseMedicine);
 router.get('/pharmacist/transactions', authenticateToken, PharmacistController.getTransactions);
 
-// 10. PHC Admin Analytics
+// 11. PHC Admin Analytics
 router.get('/admin/analytics', AnalyticsController.getAdminAnalytics);
 
-// 11. Notifications
+// 12. Notifications
 router.get('/notifications', authenticateToken, NotificationController.getNotifications);
 router.patch('/notifications/:id/read', authenticateToken, NotificationController.markAsRead);
 

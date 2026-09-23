@@ -1,4 +1,4 @@
-export type UserRole = 'PATIENT' | 'DOCTOR' | 'PHARMACIST' | 'ADMIN';
+export type UserRole = 'PATIENT' | 'DOCTOR' | 'PHARMACIST' | 'ADMIN' | 'RECEPTIONIST';
 export type AppLanguage = 'en' | 'hi' | 'kn';
 
 export interface User {
@@ -52,6 +52,7 @@ export interface DoctorProfile {
   workingHours: string;
   status: DoctorAvailabilityStatus;
   roomNumber?: string;
+  registrationNumber?: string;
   avatarUrl?: string;
   rating?: number;
   createdAt: string;
@@ -79,6 +80,20 @@ export interface AdminProfile {
   phcId: string;
   phcName?: string;
   designation: string;
+  createdAt: string;
+}
+
+export interface ReceptionistProfile {
+  id: string;
+  userId: string;
+  receptionistId: string; // e.g. PHC-REC-001
+  fullName: string;
+  email: string;
+  phone: string;
+  phcId: string;
+  phcName?: string;
+  counterNumber?: string;
+  shift?: string;
   createdAt: string;
 }
 
@@ -149,7 +164,12 @@ export type TriageRiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY';
 export interface PossibleCondition {
   name: string;
   probability: 'Low' | 'Moderate' | 'High';
+  confidenceScore?: number; // 0 - 99 (%)
+  icd10Code?: string; // e.g. "J06.9", "A90", "I21.9"
   description: string;
+  contributingSymptoms?: string[];
+  recommendedTests?: string[];
+  homeCareTips?: string[];
 }
 
 export interface SymptomAssessment {
@@ -168,6 +188,11 @@ export interface SymptomAssessment {
   explanation: string;
   requiresDoctor: boolean;
   emergencyWarning: boolean;
+  emergencyRedFlags?: string[];
+  recommendedDiagnosticTests?: string[];
+  supportiveCareMeasures?: string[];
+  warningSignsToWatch?: string[];
+  aiModel?: string;
   uploadedPhotoUrl?: string | null;
   photoAnalysisNotes?: string | null;
   disclaimer: string;
@@ -335,4 +360,60 @@ export interface AdminAnalyticsSummary {
     dispensedUnits: number;
     remainingStock: number;
   }[];
+}
+
+export interface MedicalTestItem {
+  id: string;
+  testName: string;
+  resultValue: string;
+  unit?: string;
+  notes?: string;
+}
+
+export interface PreConsultationCheckup {
+  id: string;
+  checkupNumber: string; // e.g. CHK-2026-0001
+  patientId: string; // e.g. pat-0001
+  patientCode: string; // e.g. PHC-PAT-2026-0001
+  patientName: string;
+  patientAge: number;
+  patientGender: 'Male' | 'Female' | 'Other';
+  patientPhone?: string;
+  patientAddress?: string;
+  bloodGroup?: string | null;
+  receptionistId: string;
+  receptionistName: string;
+  phcId: string;
+  phcName: string;
+  vitals: {
+    bpSystolic?: number | string;
+    bpDiastolic?: number | string;
+    bpFormatted?: string; // e.g. "120/80 mmHg"
+    pulseRate?: number | string; // bpm
+    bodyTemperature?: number | string; // °C
+    respiratoryRate?: number | string; // breaths/min
+  };
+  measurements: {
+    height?: number | string; // cm
+    weight?: number | string; // kg
+    bmi?: number | string; // kg/m²
+    bmiCategory?: 'Underweight' | 'Normal' | 'Overweight' | 'Obese';
+  };
+  otherTestsNotes?: string;
+  otherTests: MedicalTestItem[];
+  appointmentId?: string;
+  doctorId?: string;
+  doctorName?: string;
+  status: 'WAITING_FOR_DOCTOR' | 'IN_CONSULTATION' | 'COMPLETED';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ReceptionistOverviewMetrics {
+  totalToday: number;
+  waitingDoctorCount: number;
+  completedToday: number;
+  emergencyFlagsCount: number;
+  avgPreCheckMinutes: number;
+  recentCheckups: PreConsultationCheckup[];
 }

@@ -4,6 +4,8 @@ import {
   DoctorProfile,
   PharmacistProfile,
   AdminProfile,
+  ReceptionistProfile,
+  PreConsultationCheckup,
   PHC,
   Appointment,
   MedicalRecord,
@@ -20,6 +22,8 @@ export class DataStore {
   public static doctors: DoctorProfile[] = [];
   public static pharmacists: PharmacistProfile[] = [];
   public static admins: AdminProfile[] = [];
+  public static receptionists: ReceptionistProfile[] = [];
+  public static preConsultations: PreConsultationCheckup[] = [];
   public static phcs: PHC[] = [];
   public static appointments: Appointment[] = [];
   public static medicalRecords: MedicalRecord[] = [];
@@ -418,6 +422,70 @@ export class DataStore {
         phcId: a.phcId,
         phcName: phc?.name,
         designation: a.designation,
+        createdAt: new Date().toISOString(),
+      });
+    }
+
+    // 4b. SEED RECEPTIONISTS
+    const receptionistSeedData = [
+      {
+        recId: 'rec-001',
+        userId: 'user-rec-001',
+        receptionistId: 'PHC-REC-001',
+        name: 'Pooja Sharma',
+        email: 'receptionist.karolbagh@phc.gov.in',
+        phone: '+91 98444 00401',
+        phcId: 'phc-001',
+        counterNumber: 'Front Desk Counter 1',
+        shift: 'Morning (08:00 AM - 02:00 PM)',
+      },
+      {
+        recId: 'rec-002',
+        userId: 'user-rec-002',
+        receptionistId: 'PHC-REC-002',
+        name: 'Anjali Verma',
+        email: 'receptionist.rohini@phc.gov.in',
+        phone: '+91 98444 00402',
+        phcId: 'phc-002',
+        counterNumber: 'Registration Desk A',
+        shift: 'General (09:00 AM - 05:00 PM)',
+      },
+      {
+        recId: 'rec-003',
+        userId: 'user-rec-003',
+        receptionistId: 'PHC-REC-003',
+        name: 'Meena Rawat',
+        email: 'receptionist.najafgarh@phc.gov.in',
+        phone: '+91 98444 00403',
+        phcId: 'phc-003',
+        counterNumber: 'Rural Helpdesk 1',
+        shift: 'Day Shift (09:00 AM - 04:00 PM)',
+      },
+    ];
+
+    for (const r of receptionistSeedData) {
+      this.users.push({
+        id: r.userId,
+        email: r.email,
+        phone: r.phone,
+        role: 'RECEPTIONIST',
+        fullName: r.name,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+
+      const phc = this.phcs.find((ph) => ph.id === r.phcId);
+      this.receptionists.push({
+        id: r.recId,
+        userId: r.userId,
+        receptionistId: r.receptionistId,
+        fullName: r.name,
+        email: r.email,
+        phone: r.phone,
+        phcId: r.phcId,
+        phcName: phc?.name || 'Primary Health Centre',
+        counterNumber: r.counterNumber,
+        shift: r.shift,
         createdAt: new Date().toISOString(),
       });
     }
@@ -845,6 +913,109 @@ export class DataStore {
         type: 'HEALTH_ALERT',
         read: true,
         createdAt: new Date(Date.now() - 86400000).toISOString(),
+      },
+    ];
+
+    // 11. SEED PRE-CONSULTATION CHECKUPS
+    this.preConsultations = [
+      {
+        id: 'chk-001',
+        checkupNumber: 'CHK-2026-0001',
+        patientId: 'pat-0001',
+        patientCode: 'PHC-PAT-2026-0001',
+        patientName: 'Aakash Jha',
+        patientAge: 24,
+        patientGender: 'Male',
+        patientPhone: '+91 98765 43210',
+        patientAddress: 'House No. 10, Near Ward 1, New Delhi',
+        bloodGroup: 'B+ve',
+        receptionistId: 'rec-001',
+        receptionistName: 'Pooja Sharma',
+        phcId: 'phc-001',
+        phcName: 'Central Urban PHC - Karol Bagh',
+        vitals: {
+          bpSystolic: 120,
+          bpDiastolic: 80,
+          bpFormatted: '120/80 mmHg',
+          pulseRate: 74,
+          bodyTemperature: 36.8,
+          respiratoryRate: 16,
+        },
+        measurements: {
+          height: 175,
+          weight: 68,
+          bmi: 22.2,
+          bmiCategory: 'Normal',
+        },
+        otherTestsNotes: 'Patient reports mild morning wheezing. SpO2 within normal limits on room air.',
+        otherTests: [
+          {
+            id: 'test-001',
+            testName: 'SpO2 (Pulse Oximetry)',
+            resultValue: '98',
+            unit: '%',
+            notes: 'Room air',
+          },
+          {
+            id: 'test-002',
+            testName: 'Random Blood Sugar (RBS)',
+            resultValue: '95',
+            unit: 'mg/dL',
+            notes: 'Post-breakfast (2 hrs)',
+          },
+        ],
+        appointmentId: 'apt-001',
+        doctorId: 'doc-001',
+        doctorName: 'Dr. Rajesh Verma',
+        status: 'WAITING_FOR_DOCTOR',
+        createdAt: new Date(Date.now() - 1800000).toISOString(),
+        updatedAt: new Date(Date.now() - 1800000).toISOString(),
+      },
+      {
+        id: 'chk-002',
+        checkupNumber: 'CHK-2026-0002',
+        patientId: 'pat-0002',
+        patientCode: 'PHC-PAT-2026-0002',
+        patientName: 'Sunita Devi',
+        patientAge: 52,
+        patientGender: 'Female',
+        patientPhone: '+91 98765 43211',
+        patientAddress: 'House No. 13, Near Ward 2, New Delhi',
+        bloodGroup: 'O+ve',
+        receptionistId: 'rec-001',
+        receptionistName: 'Pooja Sharma',
+        phcId: 'phc-001',
+        phcName: 'Central Urban PHC - Karol Bagh',
+        vitals: {
+          bpSystolic: 138,
+          bpDiastolic: 88,
+          bpFormatted: '138/88 mmHg',
+          pulseRate: 80,
+          bodyTemperature: 37.1,
+          respiratoryRate: 18,
+        },
+        measurements: {
+          height: 158,
+          weight: 72,
+          bmi: 28.84,
+          bmiCategory: 'Overweight',
+        },
+        otherTestsNotes: 'Known diabetic for routine monthly follow-up and prescription renewal.',
+        otherTests: [
+          {
+            id: 'test-003',
+            testName: 'Fasting Blood Sugar (FBS)',
+            resultValue: '132',
+            unit: 'mg/dL',
+            notes: 'Fasting 10 hrs',
+          },
+        ],
+        appointmentId: 'apt-002',
+        doctorId: 'doc-001',
+        doctorName: 'Dr. Rajesh Verma',
+        status: 'WAITING_FOR_DOCTOR',
+        createdAt: new Date(Date.now() - 900000).toISOString(),
+        updatedAt: new Date(Date.now() - 900000).toISOString(),
       },
     ];
 

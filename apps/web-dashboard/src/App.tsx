@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import {
   Stethoscope,
   Pill,
-  ShieldCheck,
   Building2,
+  ClipboardList,
   Users,
   Activity,
   Calendar,
@@ -17,12 +17,16 @@ import {
   Sparkles,
   CheckCircle2,
   MapPin,
+  Clock,
+  ShieldCheck,
 } from 'lucide-react';
-import { UserRole, User, DoctorProfile, PharmacistProfile, AdminProfile } from '@phc-connect/types';
+import { UserRole, User, DoctorProfile, PharmacistProfile, AdminProfile, ReceptionistProfile } from '@phc-connect/types';
 import { DoctorDashboard } from './pages/DoctorDashboard';
 import { PharmacistDashboard } from './pages/PharmacistDashboard';
 import { AdminDashboard } from './pages/AdminDashboard';
+import { ReceptionistDashboard } from './pages/ReceptionistDashboard';
 import { LoginPage } from './pages/LoginPage';
+import { ReceptionistLoginPage } from './pages/ReceptionistLoginPage';
 
 export const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -31,9 +35,22 @@ export const App: React.FC = () => {
   const [currentRole, setCurrentRole] = useState<UserRole>('DOCTOR');
   const [activeDoctorId, setActiveDoctorId] = useState<string>('doc-001');
   const [activePharmacistId, setActivePharmacistId] = useState<string>('pharm-001');
+  const [activeReceptionistId, setActiveReceptionistId] = useState<string>('rec-001');
   const [staffStatus, setStaffStatus] = useState<'AVAILABLE' | 'BUSY' | 'OFFLINE'>('AVAILABLE');
   const [showUserMenu, setShowUserMenu] = useState<boolean>(false);
   const [showNotifications, setShowNotifications] = useState<boolean>(false);
+  const [isDedicatedReceptionistLogin, setIsDedicatedReceptionistLogin] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return window.location.pathname.includes('/receptionist') || window.location.search.includes('receptionist');
+    }
+    return false;
+  });
+
+  // Role Sub-Tab States
+  const [doctorTab, setDoctorTab] = useState<'opd' | 'schedule' | 'ehr'>('opd');
+  const [pharmacistTab, setPharmacistTab] = useState<'inventory' | 'dispense' | 'alerts'>('inventory');
+  const [adminTab, setAdminTab] = useState<'analytics' | 'roster' | 'audit'>('analytics');
+  const [receptionistTab, setReceptionistTab] = useState<'checkup' | 'queue' | 'patients'>('checkup');
 
   // Restore session from localStorage on startup
   useEffect(() => {
@@ -52,6 +69,7 @@ export const App: React.FC = () => {
         if (profile?.id) {
           if (savedRole === 'DOCTOR' || user.role === 'DOCTOR') setActiveDoctorId(profile.id);
           if (savedRole === 'PHARMACIST' || user.role === 'PHARMACIST') setActivePharmacistId(profile.id);
+          if (savedRole === 'RECEPTIONIST' || user.role === 'RECEPTIONIST') setActiveReceptionistId(profile.id);
         }
         setIsAuthenticated(true);
       } catch (e) {
@@ -62,7 +80,7 @@ export const App: React.FC = () => {
 
   const handleLoginSuccess = (
     user: User,
-    profile: DoctorProfile | PharmacistProfile | AdminProfile,
+    profile: DoctorProfile | PharmacistProfile | AdminProfile | ReceptionistProfile,
     role: UserRole,
     _token: string
   ) => {
@@ -71,6 +89,7 @@ export const App: React.FC = () => {
     setCurrentRole(role);
     if (role === 'DOCTOR' && profile?.id) setActiveDoctorId(profile.id);
     if (role === 'PHARMACIST' && profile?.id) setActivePharmacistId(profile.id);
+    if (role === 'RECEPTIONIST' && profile?.id) setActiveReceptionistId(profile.id);
     setIsAuthenticated(true);
   };
 
@@ -90,9 +109,22 @@ export const App: React.FC = () => {
     localStorage.setItem('phc_staff_role', role);
   };
 
-  // If not logged in, show the comprehensive Login Interface
+  // If not logged in, show dedicated Receptionist Login or Unified Login Interface
   if (!isAuthenticated) {
-    return <LoginPage onLoginSuccess={handleLoginSuccess} />;
+    if (isDedicatedReceptionistLogin) {
+      return (
+        <ReceptionistLoginPage
+          onLoginSuccess={handleLoginSuccess}
+          onNavigateToGeneralLogin={() => setIsDedicatedReceptionistLogin(false)}
+        />
+      );
+    }
+    return (
+      <LoginPage
+        onLoginSuccess={handleLoginSuccess}
+        onNavigateToReceptionistLogin={() => setIsDedicatedReceptionistLogin(true)}
+      />
+    );
   }
 
   // Display Name and Details
@@ -103,6 +135,8 @@ export const App: React.FC = () => {
       ? 'Medical Officer (OPD)'
       : currentRole === 'PHARMACIST'
       ? 'Registered Pharmacist'
+      : currentRole === 'RECEPTIONIST'
+      ? 'Front Desk Officer (Reception)'
       : 'PHC Administrator (MOIC)';
   const avatarInitials = displayName
     .split(' ')
@@ -135,15 +169,24 @@ export const App: React.FC = () => {
               <div style={{ fontSize: '10px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', padding: '6px 14px' }}>
                 Doctor Workspace
               </div>
-              <button className="nav-link active">
+              <button
+                className={`nav-link ${doctorTab === 'opd' ? 'active' : ''}`}
+                onClick={() => setDoctorTab('opd')}
+              >
                 <Activity size={18} />
                 <span>Clinical Queue & OPD</span>
               </button>
-              <button className="nav-link">
+              <button
+                className={`nav-link ${doctorTab === 'schedule' ? 'active' : ''}`}
+                onClick={() => setDoctorTab('schedule')}
+              >
                 <Calendar size={18} />
                 <span>Today's Schedule</span>
               </button>
-              <button className="nav-link">
+              <button
+                className={`nav-link ${doctorTab === 'ehr' ? 'active' : ''}`}
+                onClick={() => setDoctorTab('ehr')}
+              >
                 <Users size={18} />
                 <span>Patient EHR Records</span>
               </button>
@@ -155,17 +198,48 @@ export const App: React.FC = () => {
               <div style={{ fontSize: '10px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', padding: '6px 14px' }}>
                 Pharmacy Operations
               </div>
-              <button className="nav-link active">
+              <button
+                className={`nav-link ${pharmacistTab === 'inventory' ? 'active' : ''}`}
+                onClick={() => setPharmacistTab('inventory')}
+              >
                 <Package size={18} />
                 <span>Inventory & Stock</span>
               </button>
-              <button className="nav-link">
+              <button
+                className={`nav-link ${pharmacistTab === 'dispense' ? 'active' : ''}`}
+                onClick={() => setPharmacistTab('dispense')}
+              >
                 <Pill size={18} />
                 <span>Dispensing Console</span>
               </button>
-              <button className="nav-link">
+              <button
+                className={`nav-link ${pharmacistTab === 'alerts' ? 'active' : ''}`}
+                onClick={() => setPharmacistTab('alerts')}
+              >
                 <Layers size={18} />
                 <span>Batch & Expiry Alerts</span>
+              </button>
+            </>
+          )}
+
+          {currentRole === 'RECEPTIONIST' && (
+            <>
+              <div style={{ fontSize: '10px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', padding: '6px 14px' }}>
+                Front Desk Reception
+              </div>
+              <button
+                className={`nav-link ${receptionistTab === 'checkup' ? 'active' : ''}`}
+                onClick={() => setReceptionistTab('checkup')}
+              >
+                <ClipboardList size={18} />
+                <span>Patient Pre-Checkup</span>
+              </button>
+              <button
+                className={`nav-link ${receptionistTab === 'queue' ? 'active' : ''}`}
+                onClick={() => setReceptionistTab('queue')}
+              >
+                <Clock size={18} />
+                <span>Live OPD Queue</span>
               </button>
             </>
           )}
@@ -175,15 +249,24 @@ export const App: React.FC = () => {
               <div style={{ fontSize: '10px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', padding: '6px 14px' }}>
                 PHC Administration
               </div>
-              <button className="nav-link active">
+              <button
+                className={`nav-link ${adminTab === 'analytics' ? 'active' : ''}`}
+                onClick={() => setAdminTab('analytics')}
+              >
                 <Building2 size={18} />
                 <span>Executive Analytics</span>
               </button>
-              <button className="nav-link">
+              <button
+                className={`nav-link ${adminTab === 'roster' ? 'active' : ''}`}
+                onClick={() => setAdminTab('roster')}
+              >
                 <Stethoscope size={18} />
                 <span>Doctor & Staff Roster</span>
               </button>
-              <button className="nav-link">
+              <button
+                className={`nav-link ${adminTab === 'audit' ? 'active' : ''}`}
+                onClick={() => setAdminTab('audit')}
+              >
                 <ShieldCheck size={18} />
                 <span>Audit & Governance</span>
               </button>
@@ -194,7 +277,7 @@ export const App: React.FC = () => {
         {/* Sidebar Footer Authenticated Staff Card */}
         <div className="sidebar-user-footer">
           <div className="sidebar-user-avatar">
-            {avatarInitials || (currentRole === 'DOCTOR' ? 'DR' : currentRole === 'PHARMACIST' ? 'PH' : 'AD')}
+            {avatarInitials || (currentRole === 'DOCTOR' ? 'DR' : currentRole === 'PHARMACIST' ? 'PH' : currentRole === 'RECEPTIONIST' ? 'RC' : 'AD')}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <h4 className="sidebar-user-name">
@@ -244,6 +327,12 @@ export const App: React.FC = () => {
               💊 Pharmacist View
             </button>
             <button
+              className={`role-pill ${currentRole === 'RECEPTIONIST' ? 'active receptionist-pill' : ''}`}
+              onClick={() => handleSwitchRole('RECEPTIONIST')}
+            >
+              📋 Reception Desk
+            </button>
+            <button
               className={`role-pill ${currentRole === 'ADMIN' ? 'active admin-pill' : ''}`}
               onClick={() => handleSwitchRole('ADMIN')}
             >
@@ -285,8 +374,8 @@ export const App: React.FC = () => {
                 className="user-profile-pill"
                 onClick={() => setShowUserMenu(!showUserMenu)}
               >
-                <div className="header-avatar">
-                  {avatarInitials || 'DR'}
+                <div className="header-avatar" style={{ background: currentRole === 'RECEPTIONIST' ? 'linear-gradient(135deg, #0284c7, #0ea5e9)' : undefined }}>
+                  {avatarInitials || (currentRole === 'RECEPTIONIST' ? 'RC' : 'DR')}
                 </div>
                 <div className="header-user-meta">
                   <span className="header-user-name">{displayName}</span>
@@ -324,12 +413,37 @@ export const App: React.FC = () => {
 
         {/* Dashboard Dynamic Content */}
         <main className="dash-content">
-          {currentRole === 'DOCTOR' && <DoctorDashboard doctorId={activeDoctorId} />}
-          {currentRole === 'PHARMACIST' && <PharmacistDashboard pharmacistId={activePharmacistId} />}
-          {currentRole === 'ADMIN' && <AdminDashboard />}
+          {currentRole === 'DOCTOR' && (
+            <DoctorDashboard
+              doctorId={activeDoctorId}
+              activeTab={doctorTab}
+              onSelectTab={(tab) => setDoctorTab(tab)}
+            />
+          )}
+          {currentRole === 'PHARMACIST' && (
+            <PharmacistDashboard
+              pharmacistId={activePharmacistId}
+              activeTab={pharmacistTab}
+              onSelectTab={(tab) => setPharmacistTab(tab)}
+            />
+          )}
+          {currentRole === 'RECEPTIONIST' && (
+            <ReceptionistDashboard
+              receptionistId={activeReceptionistId}
+              activeTab={receptionistTab}
+              onSelectTab={(tab) => setReceptionistTab(tab)}
+            />
+          )}
+          {currentRole === 'ADMIN' && (
+            <AdminDashboard
+              activeTab={adminTab}
+              onSelectTab={(tab) => setAdminTab(tab)}
+            />
+          )}
         </main>
       </div>
     </div>
   );
 };
 export default App;
+

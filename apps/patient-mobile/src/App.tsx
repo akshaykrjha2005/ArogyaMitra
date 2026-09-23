@@ -37,7 +37,7 @@ export const App: React.FC = () => {
   const [patient, setPatient] = useState<PatientProfile | null>(null);
   const [activeTab, setActiveTab] = useState<string>('home');
   const [navigationExtra, setNavigationExtra] = useState<any>(null);
-  const [isMobileFrame, setIsMobileFrame] = useState<boolean>(true);
+  const [isMobileFrame, setIsMobileFrame] = useState<boolean>(() => typeof window !== 'undefined' && window.innerWidth > 768);
   const [lang, setLang] = useState<AppLanguage>('en');
   const [isEmergencyOpen, setIsEmergencyOpen] = useState(false);
   const [emergencyReason, setEmergencyReason] = useState<string | undefined>(undefined);
@@ -54,9 +54,6 @@ export const App: React.FC = () => {
       } catch (e) {
         console.error(e);
       }
-    } else {
-      // Default to demo patient 1
-      loadDefaultPatient();
     }
 
     loadNotifications();
@@ -68,18 +65,6 @@ export const App: React.FC = () => {
 
     return () => clearInterval(timer);
   }, []);
-
-  const loadDefaultPatient = async () => {
-    try {
-      const res = await apiClient.get('/patients/pat-0001');
-      if (res.success && res.patient) {
-        setPatient(res.patient);
-        localStorage.setItem('phc_patient_profile', JSON.stringify(res.patient));
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  };
 
   const loadNotifications = async () => {
     try {

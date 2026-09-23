@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1976d2" />
+      <stop offset="100%" stop-color="#00897b" />
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000000" flood-opacity="0.25" />
+    </filter>
+  </defs>
+  <rect width="192" height="192" rx="44" fill="url(#grad)" />
+  <!-- Heartbeat with Cross Icon -->
+  <g filter="url(#shadow)" fill="none" stroke="#ffffff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M96 150 C 40 105 32 72 54 50 C 70 34 88 42 96 56 C 104 42 122 34 138 50 C 160 72 152 105 96 150 Z" fill="rgba(255,255,255,0.15)" stroke="none" />
+    <path d="M36 100 L62 100 L76 72 L96 128 L114 84 L126 100 L156 100" />
+  </g>
+  <circle cx="146" cy="46" r="10" fill="#43a047" />
+</svg>

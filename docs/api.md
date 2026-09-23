@@ -5,9 +5,10 @@ Base URL: `http://localhost:5000/api`
 ## Authentication & Profiles
 | Method | Endpoint | Description | Access |
 |---|---|---|---|
+| `POST` | `/auth/send-otp` | Generate & send 6-digit phone verification OTP | Public |
+| `POST` | `/auth/verify-otp` | Verify 6-digit OTP code & log in or complete registration | Public |
 | `POST` | `/auth/register` | Register new patient & generate Unique Patient ID (`PHC-PAT-2026-XXXX`) | Public |
 | `POST` | `/auth/login` | Login with email/phone & role | Public |
-| `POST` | `/auth/verify-otp` | Verify simulated phone OTP | Public |
 | `GET` | `/auth/me` | Fetch currently authenticated user session | Authenticated |
 
 ## Patients & Medical Records (EHR)

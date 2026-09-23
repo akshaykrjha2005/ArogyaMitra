@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FileText, Stethoscope, Pill, Calendar, Clock, Activity, ShieldCheck, Download, ChevronDown, ChevronUp } from 'lucide-react';
 import { MedicalRecord, PatientProfile } from '@phc-connect/types';
 import { apiClient } from '../services/api';
+import { PrescriptionPDFGenerator, PrescriptionData } from '../utils/prescriptionPdfGenerator';
 
 interface Props {
   patient: PatientProfile | null;
@@ -62,6 +63,50 @@ export const MedicalRecordsScreen: React.FC<Props> = ({ patient, lang }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDownloadPDF = (rec: MedicalRecord) => {
+    const pData: PrescriptionData = {
+      recordNumber: rec.recordNumber,
+      consultationDate: new Date(rec.visitDate || rec.createdAt).toLocaleString('en-IN', {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+      }),
+      patient: {
+        fullName: patient?.fullName || 'Patient',
+        patientId: patient?.patientId || 'PHC-PAT-0001',
+        age: patient?.age || 28,
+        gender: patient?.gender || 'Male',
+        phone: patient?.phone || '+91 98765 43210',
+        allergies: patient?.allergies,
+        existingConditions: patient?.existingConditions,
+      },
+      doctor: {
+        fullName: rec.doctorName || 'Dr. Rajesh Verma',
+        doctorId: rec.doctorId || 'DOC-001',
+        specialization: rec.doctorSpecialization || 'General Medicine',
+        qualification: 'MBBS, MD',
+        registrationNumber: 'MCI-DEL-2018-8842',
+        roomNumber: 'Room 104',
+        phcName: rec.phcName || 'Central Urban Primary Health Centre (Karol Bagh)',
+        phcAddress: 'Opposite Metro Pillar 114, Karol Bagh, New Delhi - 110005',
+      },
+      vitals: {
+        bp: rec.vitals?.bp,
+        temperature: rec.vitals?.temperature,
+        pulse: rec.vitals?.pulse,
+        spO2: rec.vitals?.spO2,
+        weight: rec.vitals?.weight,
+      },
+      diagnosis: Array.isArray(rec.diagnosis) ? rec.diagnosis : [rec.diagnosis || 'Clinical Evaluation'],
+      clinicalAssessment: rec.clinicalAssessment,
+      recommendedTests: rec.recommendedTests || [],
+      prescriptions: rec.prescriptions || [],
+      referralType: rec.referralType,
+      followUpDate: rec.followUpDate,
+      doctorNotes: rec.doctorNotes,
+    };
+    PrescriptionPDFGenerator.generate(pData, true);
   };
 
   return (
@@ -139,6 +184,30 @@ export const MedicalRecordsScreen: React.FC<Props> = ({ patient, lang }) => {
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDownloadPDF(rec);
+                      }}
+                      style={{
+                        background: '#e0f2f1',
+                        color: '#00796b',
+                        border: '1px solid #00796b',
+                        borderRadius: '6px',
+                        padding: '4px 8px',
+                        fontSize: '10px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                      }}
+                      title="Download PDF Prescription"
+                    >
+                      <Download size={12} /> PDF
+                    </button>
+
                     <span style={{
                       background: '#e8f5e9',
                       color: '#2e7d32',
@@ -308,6 +377,33 @@ export const MedicalRecordsScreen: React.FC<Props> = ({ patient, lang }) => {
                         <strong>Doctor's Advice:</strong> {rec.doctorNotes}
                       </p>
                     )}
+
+                    {/* Download Prescription PDF Action */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDownloadPDF(rec);
+                      }}
+                      style={{
+                        background: '#00796b',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '10px',
+                        padding: '10px 14px',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                        boxShadow: '0 2px 6px rgba(0, 121, 107, 0.25)',
+                        marginTop: '4px',
+                      }}
+                    >
+                      <Download size={15} /> Download Official PDF Prescription
+                    </button>
                   </div>
                 )}
               </div>

@@ -72,9 +72,9 @@ app.get('/', (req, res) => {
 
 // Start server
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(PORT, () => {
+  app.listen(Number(PORT), '0.0.0.0', () => {
     console.log(`====================================================`);
-    console.log(`🚀 ArogyaMitra API Server running on port ${PORT}`);
+    console.log(`🚀 ArogyaMitra API Server running on port ${PORT} (0.0.0.0)`);
     console.log(`🏥 Loaded ${DataStore.phcs.length} PHCs, ${DataStore.doctors.length} Doctors, ${DataStore.medicines.length} Medicines`);
     console.log(`🩺 AI Triage & Safety Engine active`);
     console.log(`====================================================`);

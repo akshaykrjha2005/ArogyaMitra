@@ -3,6 +3,7 @@ import {
   Stethoscope,
   Pill,
   Building2,
+  ClipboardList,
   HeartPulse,
   Lock,
   Mail,
@@ -18,16 +19,17 @@ import {
   Clock,
   Phone,
 } from 'lucide-react';
-import { UserRole, User, DoctorProfile, PharmacistProfile, AdminProfile } from '@phc-connect/types';
+import { UserRole, User, DoctorProfile, PharmacistProfile, AdminProfile, ReceptionistProfile } from '@phc-connect/types';
 import { apiClient } from '../services/api';
 
 interface Props {
   onLoginSuccess: (
     user: User,
-    profile: DoctorProfile | PharmacistProfile | AdminProfile,
+    profile: DoctorProfile | PharmacistProfile | AdminProfile | ReceptionistProfile,
     role: UserRole,
     token: string
   ) => void;
+  onNavigateToReceptionistLogin?: () => void;
 }
 
 interface DemoAccount {
@@ -178,10 +180,40 @@ const DEMO_ACCOUNTS: Record<UserRole, DemoAccount[]> = {
       avatarText: 'SM',
     },
   ],
+  RECEPTIONIST: [
+    {
+      id: 'rec-001',
+      name: 'Pooja Sharma',
+      email: 'receptionist.karolbagh@phc.gov.in',
+      phone: '+91 98444 00401',
+      role: 'RECEPTIONIST',
+      title: 'Front Desk Officer',
+      specialization: 'Patient Registration & Vitals Intake',
+      phcName: 'Central Urban PHC - Karol Bagh',
+      phcId: 'phc-001',
+      badge: 'Counter 1',
+      avatarBg: '#0284c7',
+      avatarText: 'PS',
+    },
+    {
+      id: 'rec-002',
+      name: 'Anjali Verma',
+      email: 'receptionist.rohini@phc.gov.in',
+      phone: '+91 98444 00402',
+      role: 'RECEPTIONIST',
+      title: 'Lead Registration Officer',
+      specialization: 'Pre-Consultation Check-Up Bay',
+      phcName: 'Suburban CHC - Rohini',
+      phcId: 'phc-002',
+      badge: 'Desk A',
+      avatarBg: '#0ea5e9',
+      avatarText: 'AV',
+    },
+  ],
   PATIENT: [],
 };
 
-export const LoginPage: React.FC<Props> = ({ onLoginSuccess }) => {
+export const LoginPage: React.FC<Props> = ({ onLoginSuccess, onNavigateToReceptionistLogin }) => {
   const [selectedRole, setSelectedRole] = useState<UserRole>('DOCTOR');
   const [emailOrPhone, setEmailOrPhone] = useState('dr.verma@phc.gov.in');
   const [password, setPassword] = useState('••••••••••••');
@@ -299,6 +331,15 @@ export const LoginPage: React.FC<Props> = ({ onLoginSuccess }) => {
           desc: 'Epidemic outbreak surveillance, patient footfall metrics & clinical staff roster',
           icon: <Building2 size={24} />,
         };
+      case 'RECEPTIONIST':
+        return {
+          primary: '#0284c7',
+          lightBg: '#f0f9ff',
+          accent: '#0ea5e9',
+          title: 'Receptionist & Front Desk Portal',
+          desc: 'Patient intake, pre-consultation vitals recording, auto BMI calculation & OPD token assignment',
+          icon: <ClipboardList size={24} />,
+        };
       default:
         return {
           primary: '#2563eb',
@@ -358,7 +399,7 @@ export const LoginPage: React.FC<Props> = ({ onLoginSuccess }) => {
           {/* Left Column: Form & Role Tabs */}
           <div className="login-form-card">
             {/* Role Tab Bar */}
-            <div className="role-tab-bar">
+            <div className="role-tab-bar" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
               <button
                 type="button"
                 className={`role-tab-btn ${selectedRole === 'DOCTOR' ? 'active-doctor' : ''}`}
@@ -366,8 +407,8 @@ export const LoginPage: React.FC<Props> = ({ onLoginSuccess }) => {
               >
                 <Stethoscope size={18} />
                 <div>
-                  <div className="role-tab-label">Doctor View</div>
-                  <div className="role-tab-sub">OPD & Consultation</div>
+                  <div className="role-tab-label">Doctor</div>
+                  <div className="role-tab-sub">OPD</div>
                 </div>
               </button>
 
@@ -378,8 +419,8 @@ export const LoginPage: React.FC<Props> = ({ onLoginSuccess }) => {
               >
                 <Pill size={18} />
                 <div>
-                  <div className="role-tab-label">Pharmacist View</div>
-                  <div className="role-tab-sub">Stock & Dispensing</div>
+                  <div className="role-tab-label">Pharmacy</div>
+                  <div className="role-tab-sub">Stock</div>
                 </div>
               </button>
 
@@ -390,8 +431,20 @@ export const LoginPage: React.FC<Props> = ({ onLoginSuccess }) => {
               >
                 <Building2 size={18} />
                 <div>
-                  <div className="role-tab-label">PHC Admin View</div>
-                  <div className="role-tab-sub">Analytics & Staff</div>
+                  <div className="role-tab-label">Admin</div>
+                  <div className="role-tab-sub">Facility</div>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                className={`role-tab-btn ${selectedRole === 'RECEPTIONIST' ? 'active-receptionist' : ''}`}
+                onClick={() => handleRoleSelect('RECEPTIONIST')}
+              >
+                <ClipboardList size={18} />
+                <div>
+                  <div className="role-tab-label">Reception</div>
+                  <div className="role-tab-sub">Front Desk</div>
                 </div>
               </button>
             </div>

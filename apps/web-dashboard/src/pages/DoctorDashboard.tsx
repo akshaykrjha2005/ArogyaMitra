@@ -15,14 +15,22 @@ import {
   Send,
   Sparkles,
 } from 'lucide-react';
-import { DoctorProfile, DoctorAvailabilityStatus, Appointment, MedicalRecord, PrescriptionItem, ReferralType } from '@phc-connect/types';
+import { DoctorProfile, DoctorAvailabilityStatus, Appointment, MedicalRecord, PrescriptionItem, ReferralType, PatientProfile } from '@phc-connect/types';
 import { apiClient } from '../services/api';
+import { DoctorScheduleView } from './DoctorScheduleView';
+import { DoctorEHRView } from './DoctorEHRView';
+import { PrescriptionPreviewModal } from '../components/PrescriptionPreviewModal';
+import { PrescriptionData, PrescriptionPDFGenerator } from '../utils/prescriptionPdfGenerator';
+import { Download, Printer, Eye } from 'lucide-react';
 
 interface Props {
   doctorId: string;
+  activeTab?: 'opd' | 'schedule' | 'ehr';
+  onSelectTab?: (tab: 'opd' | 'schedule' | 'ehr') => void;
 }
 
-export const DoctorDashboard: React.FC<Props> = ({ doctorId }) => {
+export const DoctorDashboard: React.FC<Props> = ({ doctorId, activeTab = 'opd', onSelectTab }) => {
+  const [selectedEHRId, setSelectedEHRId] = useState<string | undefined>(undefined);
   const [doctor, setDoctor] = useState<DoctorProfile | null>(null);
   const [queueMetrics, setQueueMetrics] = useState<any>({
     totalToday: 0,
@@ -61,6 +69,8 @@ export const DoctorDashboard: React.FC<Props> = ({ doctorId }) => {
   const [doctorNotes, setDoctorNotes] = useState('Patient advised adequate hydration and rest.');
   const [submitting, setSubmitting] = useState(false);
   const [successNotice, setSuccessNotice] = useState('');
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
+  const [currentPrescriptionData, setCurrentPrescriptionData] = useState<PrescriptionData | null>(null);
 
   useEffect(() => {
     loadDoctorData();
@@ -88,6 +98,53 @@ export const DoctorDashboard: React.FC<Props> = ({ doctorId }) => {
     } catch (err) {
       console.error(err);
     }
+  };
+
+  const constructCurrentPrescriptionData = (recordNumber?: string, consultationDate?: string): PrescriptionData => {
+    return {
+      recordNumber: recordNumber || `OPD-${Date.now().toString().slice(-4)}`,
+      consultationDate: consultationDate || new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }),
+      patient: {
+        fullName: activeAppointment?.patientName || 'Aakash Jha',
+        patientId: activeAppointment?.patientId || 'PHC-PAT-2026-0001',
+        age: activeAppointment?.patientAge || 24,
+        gender: activeAppointment?.patientGender || 'Male',
+        phone: activeAppointment?.patientPhone || '+91 98765 43210',
+        allergies: patientDetails?.patient?.allergies || (activeAppointment?.patientName?.includes('Aakash') ? ['Penicillin'] : []),
+        existingConditions: patientDetails?.patient?.existingConditions || (activeAppointment?.patientName?.includes('Aakash') ? ['Mild Bronchial Asthma'] : []),
+      },
+      doctor: {
+        fullName: doctor?.fullName || 'Dr. Rajesh Verma',
+        doctorId: doctor?.doctorId || 'DOC-001',
+        specialization: doctor?.specialization || 'General Medicine (MBBS, MD)',
+        qualification: doctor?.qualification || 'MBBS, MD',
+        registrationNumber: doctor?.registrationNumber || 'MCI-DEL-2018-8842',
+        roomNumber: doctor?.roomNumber || 'Room 104',
+        phcName: doctor?.phcName || 'Central Urban Primary Health Centre (Karol Bagh)',
+        phcAddress: 'Opposite Metro Pillar 114, Karol Bagh, New Delhi - 110005',
+      },
+      vitals: {
+        bp,
+        temperature: temp,
+        pulse,
+        spO2,
+        weight,
+      },
+      diagnosis: diagnosis ? diagnosis.split(',').map((s) => s.trim()) : ['Acute Clinical Evaluation'],
+      clinicalAssessment,
+      recommendedTests: recommendedTests ? recommendedTests.split(',').map((s) => s.trim()) : [],
+      prescriptions,
+      referralType,
+      followUpDate: followUpDate || null,
+      doctorNotes,
+    };
+  };
+
+  const handleManualPDFPreview = () => {
+    const data = constructCurrentPrescriptionData();
+    setCurrentPrescriptionData(data);
+    PrescriptionPDFGenerator.generate(data, true);
+    setPreviewModalOpen(true);
   };
 
   const handleStatusChange = async (newStatus: DoctorAvailabilityStatus) => {
@@ -163,8 +220,14 @@ export const DoctorDashboard: React.FC<Props> = ({ doctorId }) => {
       });
 
       if (res.success) {
-        setSuccessNotice(`Consultation recorded & Prescription #${res.medicalRecord.recordNumber} issued!`);
-        setTimeout(() => setSuccessNotice(''), 4000);
+        const pData = constructCurrentPrescriptionData(res.medicalRecord?.recordNumber, res.medicalRecord?.createdAt);
+        setCurrentPrescriptionData(pData);
+        setSuccessNotice(`Consultation recorded & Prescription #${res.medicalRecord?.recordNumber || 'NEW'} issued!`);
+        
+        // Auto generate & download PDF
+        PrescriptionPDFGenerator.generate(pData, true);
+        setPreviewModalOpen(true);
+
         loadDoctorData();
       }
     } catch (err) {
@@ -255,433 +318,515 @@ export const DoctorDashboard: React.FC<Props> = ({ doctorId }) => {
         </div>
       </div>
 
-      {/* KPI Cards Grid */}
-      <div className="stat-grid">
-        <div className="stat-card">
-          <div>
-            <span className="stat-label">Total Appointments Today</span>
-            <div className="stat-val">{queueMetrics.totalToday}</div>
-          </div>
-          <div className="stat-icon" style={{ background: '#e3f2fd', color: '#1976d2' }}>
-            <Calendar size={22} />
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div>
-            <span className="stat-label">Waiting in Queue</span>
-            <div className="stat-val" style={{ color: '#d97706' }}>{queueMetrics.waitingCount}</div>
-          </div>
-          <div className="stat-icon" style={{ background: '#fffbeb', color: '#d97706' }}>
-            <Clock size={22} />
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div>
-            <span className="stat-label">In Active Consultation</span>
-            <div className="stat-val" style={{ color: '#00897b' }}>{queueMetrics.inConsultationCount}</div>
-          </div>
-          <div className="stat-icon" style={{ background: '#e0f2f1', color: '#00897b' }}>
-            <Stethoscope size={22} />
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div>
-            <span className="stat-label">Completed Consultations</span>
-            <div className="stat-val" style={{ color: '#16a34a' }}>{queueMetrics.completedCount}</div>
-          </div>
-          <div className="stat-icon" style={{ background: '#f0fdf4', color: '#16a34a' }}>
-            <CheckCircle2 size={22} />
-          </div>
-        </div>
-      </div>
-
-      {successNotice && (
-        <div style={{
-          background: '#f0fdf4',
-          border: '1px solid #bbf7d0',
-          borderRadius: '12px',
-          padding: '12px 18px',
-          color: '#15803d',
-          fontWeight: 700,
-          fontSize: '13px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-        }}>
-          <CheckCircle2 size={18} />
-          {successNotice}
-        </div>
+      {/* Tab Routing */}
+      {activeTab === 'schedule' && (
+        <DoctorScheduleView
+          doctorId={doctorId}
+          onStartConsultation={(apt) => {
+            selectPatientForConsultation(apt);
+            onSelectTab?.('opd');
+          }}
+          onViewEHR={(patientId) => {
+            setSelectedEHRId(patientId);
+            onSelectTab?.('ehr');
+          }}
+        />
       )}
 
-      {/* Main Clinical Workstation: 2 Columns */}
-      <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: '20px' }}>
-        {/* Left Column: Waiting Queue */}
-        <div style={{
-          background: '#ffffff',
-          borderRadius: '16px',
-          border: '1px solid #e2e8f0',
-          padding: '18px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '12px',
-          maxHeight: 'calc(100vh - 320px)',
-          overflowY: 'auto',
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 style={{ fontSize: '14px', fontWeight: 800, color: '#1e293b' }}>
-              Patient Queue ({waitingPatients.length + inConsultation.length})
-            </h3>
-            <span style={{ fontSize: '11px', color: '#64748b' }}>Real-time</span>
+      {activeTab === 'ehr' && (
+        <DoctorEHRView
+          preSelectedPatientId={selectedEHRId}
+          onStartConsultation={(patient) => {
+            const now = new Date().toISOString();
+            const tempApt: Appointment = {
+              id: `apt-${Date.now()}`,
+              appointmentNumber: `OPD-${Date.now().toString().slice(-4)}`,
+              patientId: patient.id,
+              patientName: patient.fullName,
+              patientAge: patient.age,
+              patientGender: patient.gender,
+              patientPhone: patient.phone,
+              doctorId: doctorId,
+              doctorName: doctor?.fullName || 'Doctor',
+              doctorSpecialization: doctor?.specialization || 'General Medicine',
+              phcId: doctor?.phcId || 'phc-001',
+              phcName: doctor?.phcName || 'Central Urban PHC - Karol Bagh',
+              tokenNumber: waitingPatients.length + 1,
+              date: now.split('T')[0],
+              timeSlot: 'Walk-in (Immediate)',
+              status: 'In Consultation',
+              reasonForVisit: patient.existingConditions?.join(', ') || 'Clinical Evaluation',
+              symptoms: [],
+              criticalityLevel: 'LOW',
+              createdAt: now,
+              updatedAt: now,
+            };
+            selectPatientForConsultation(tempApt);
+            onSelectTab?.('opd');
+          }}
+        />
+      )}
+
+      {activeTab === 'opd' && (
+        <>
+          {/* KPI Cards Grid */}
+          <div className="stat-grid">
+            <div className="stat-card">
+              <div>
+                <span className="stat-label">Total Appointments Today</span>
+                <div className="stat-val">{queueMetrics.totalToday}</div>
+              </div>
+              <div className="stat-icon" style={{ background: '#e3f2fd', color: '#1976d2' }}>
+                <Calendar size={22} />
+              </div>
+            </div>
+
+            <div className="stat-card">
+              <div>
+                <span className="stat-label">Waiting in Queue</span>
+                <div className="stat-val" style={{ color: '#d97706' }}>{queueMetrics.waitingCount}</div>
+              </div>
+              <div className="stat-icon" style={{ background: '#fffbeb', color: '#d97706' }}>
+                <Clock size={22} />
+              </div>
+            </div>
+
+            <div className="stat-card">
+              <div>
+                <span className="stat-label">In Active Consultation</span>
+                <div className="stat-val" style={{ color: '#00897b' }}>{queueMetrics.inConsultationCount}</div>
+              </div>
+              <div className="stat-icon" style={{ background: '#e0f2f1', color: '#00897b' }}>
+                <Stethoscope size={22} />
+              </div>
+            </div>
+
+            <div className="stat-card">
+              <div>
+                <span className="stat-label">Completed Consultations</span>
+                <div className="stat-val" style={{ color: '#16a34a' }}>{queueMetrics.completedCount}</div>
+              </div>
+              <div className="stat-icon" style={{ background: '#f0fdf4', color: '#16a34a' }}>
+                <CheckCircle2 size={22} />
+              </div>
+            </div>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {waitingPatients.length === 0 && inConsultation.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '30px 10px', color: '#94a3b8' }}>
-                <Users size={32} style={{ margin: '0 auto 8px', opacity: 0.5 }} />
-                <p style={{ fontSize: '12px' }}>No patients currently waiting.</p>
+          {successNotice && (
+            <div style={{
+              background: '#f0fdf4',
+              border: '1px solid #bbf7d0',
+              borderRadius: '12px',
+              padding: '12px 18px',
+              color: '#15803d',
+              fontWeight: 700,
+              fontSize: '13px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+            }}>
+              <CheckCircle2 size={18} />
+              {successNotice}
+            </div>
+          )}
+
+          {/* Queue & OPD Consultation Console */}
+          <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: '20px', alignItems: 'start' }}>
+            {/* Left Column: Live Queue */}
+            <div className="dash-card">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a' }}>
+                  Patient Queue ({waitingPatients.length + inConsultation.length})
+                </h3>
+                <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>Real-time</span>
               </div>
-            ) : (
-              [...inConsultation, ...waitingPatients].map((apt) => {
-                const isSelected = activeAppointment?.id === apt.id;
-                return (
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {inConsultation.map((apt) => (
                   <div
                     key={apt.id}
                     onClick={() => selectPatientForConsultation(apt)}
                     style={{
-                      background: isSelected ? '#eff6ff' : '#f8fafc',
-                      border: `1px solid ${isSelected ? '#3b82f6' : '#e2e8f0'}`,
-                      borderRadius: '12px',
                       padding: '12px',
+                      borderRadius: '12px',
+                      border: activeAppointment?.id === apt.id ? '2px solid #0284c7' : '1px solid #bae6fd',
+                      background: '#f0f9ff',
                       cursor: 'pointer',
-                      transition: 'all 0.15s ease',
+                      transition: 'all 0.2s ease',
                     }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                      <span style={{ fontSize: '11px', fontWeight: 800, color: '#1976d2' }}>
-                        Token #{apt.tokenNumber}
+                      <span style={{ fontSize: '12px', fontWeight: 800, color: '#0284c7' }}>
+                        Token #{apt.tokenNumber || 1}
                       </span>
-                      <span style={{
-                        fontSize: '10px',
-                        fontWeight: 700,
-                        padding: '2px 6px',
-                        borderRadius: '4px',
-                        background: apt.status === 'In Consultation' ? '#ffebee' : '#e0f2f1',
-                        color: apt.status === 'In Consultation' ? '#d32f2f' : '#00796b',
-                      }}>
+                      <span style={{ fontSize: '10px', background: '#fee2e2', color: '#b91c1c', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
+                        In Consultation
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '13px', fontWeight: 800, color: '#0f172a' }}>
+                      {apt.patientName}
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                      {apt.patientAge} Yrs • {apt.patientGender} • {apt.timeSlot}
+                    </div>
+                    {apt.reasonForVisit && (
+                      <div style={{ fontSize: '11px', color: '#475569', marginTop: '4px', background: 'white', padding: '4px 6px', borderRadius: '4px' }}>
+                        Reason: {apt.reasonForVisit}
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                {waitingPatients.map((apt) => (
+                  <div
+                    key={apt.id}
+                    onClick={() => selectPatientForConsultation(apt)}
+                    style={{
+                      padding: '12px',
+                      borderRadius: '12px',
+                      border: activeAppointment?.id === apt.id ? '2px solid #0284c7' : '1px solid #e2e8f0',
+                      background: activeAppointment?.id === apt.id ? '#f8fafc' : 'white',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 800, color: '#0284c7' }}>
+                        Token #{apt.tokenNumber || 2}
+                      </span>
+                      <span style={{ fontSize: '10px', background: '#ecfdf5', color: '#059669', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
                         {apt.status}
                       </span>
                     </div>
-
-                    <h4 style={{ fontSize: '13px', fontWeight: 800, color: '#1e293b' }}>
+                    <div style={{ fontSize: '13px', fontWeight: 800, color: '#0f172a' }}>
                       {apt.patientName}
-                    </h4>
-                    <p style={{ fontSize: '11px', color: '#64748b' }}>
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
                       {apt.patientAge} Yrs • {apt.patientGender} • {apt.timeSlot}
-                    </p>
-                    <p style={{ fontSize: '11px', color: '#475569', marginTop: '4px', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                      <strong>Reason:</strong> {apt.reasonForVisit}
-                    </p>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </div>
-
-        {/* Right Column: Active Patient Consultation Workstation */}
-        <div style={{
-          background: '#ffffff',
-          borderRadius: '16px',
-          border: '1px solid #e2e8f0',
-          padding: '24px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '20px',
-        }}>
-          {activeAppointment ? (
-            <form onSubmit={handleSubmitConsultation} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-              {/* Patient Banner */}
-              <div style={{
-                background: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                borderRadius: '14px',
-                padding: '16px 20px',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#1e293b' }}>
-                      {activeAppointment.patientName}
-                    </h3>
-                    <span style={{ fontSize: '11px', background: '#dbeafe', color: '#1e40af', padding: '2px 8px', borderRadius: '4px', fontWeight: 700 }}>
-                      {patientDetails?.patient?.patientId || 'PHC-PAT-2026-0001'}
-                    </span>
-                  </div>
-                  <p style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
-                    {activeAppointment.patientAge} Years • {activeAppointment.patientGender} • Phone: {activeAppointment.patientPhone}
-                  </p>
-                </div>
-
-                {/* Patient Known Allergies & Chronic Conditions */}
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  {patientDetails?.patient?.allergies?.length > 0 && (
-                    <div style={{ background: '#fee2e2', color: '#b91c1c', padding: '6px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 700 }}>
-                      ⚠️ Allergy: {patientDetails.patient.allergies.join(', ')}
                     </div>
-                  )}
-                  {patientDetails?.patient?.existingConditions?.length > 0 && (
-                    <div style={{ background: '#eff6ff', color: '#1d4ed8', padding: '6px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 700 }}>
-                      ● {patientDetails.patient.existingConditions.join(', ')}
+                    {apt.reasonForVisit && (
+                      <div style={{ fontSize: '11px', color: '#475569', marginTop: '4px', background: '#f8fafc', padding: '4px 6px', borderRadius: '4px' }}>
+                        Reason: {apt.reasonForVisit}
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                {waitingPatients.length === 0 && inConsultation.length === 0 && (
+                  <div style={{ textAlign: 'center', padding: '30px 10px', color: '#94a3b8', fontSize: '13px' }}>
+                    No patients currently in the OPD queue.
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Right Column: Active Consultation Room */}
+            <div className="dash-card">
+              {activeAppointment ? (
+                <form onSubmit={handleSubmitConsultation} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  {/* Patient Banner */}
+                  <div style={{
+                    background: '#f8fafc',
+                    padding: '16px',
+                    borderRadius: '12px',
+                    border: '1px solid #e2e8f0',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: '12px',
+                  }}>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a' }}>
+                          {activeAppointment.patientName}
+                        </h3>
+                        <span style={{ fontSize: '11px', background: '#e0f2fe', color: '#0369a1', fontWeight: 700, padding: '2px 8px', borderRadius: '4px' }}>
+                          {patientDetails?.patient?.patientId || 'PHC-PAT-2026-0001'}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
+                        {activeAppointment.patientAge} Years • {activeAppointment.patientGender} • Phone: {activeAppointment.patientPhone}
+                      </div>
                     </div>
-                  )}
-                </div>
-              </div>
 
-              {/* AI Symptom Triage Report Box if Available */}
-              {patientDetails?.recentAssessments && patientDetails.recentAssessments.length > 0 && (
-                <div style={{
-                  background: '#f0fdfa',
-                  border: '1px solid #99f6e4',
-                  borderRadius: '12px',
-                  padding: '14px',
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-                    <Sparkles size={15} color="#0d9488" />
-                    <h4 style={{ fontSize: '12px', fontWeight: 800, color: '#0f766e' }}>
-                      AI Pre-Consultation Symptom Assessment (Risk Level: {patientDetails.recentAssessments[0].riskLevel})
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      {patientDetails?.patient?.allergies?.map((al: string, i: number) => (
+                        <span key={i} style={{ fontSize: '11px', background: '#fee2e2', color: '#b91c1c', padding: '3px 8px', borderRadius: '6px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <AlertTriangle size={12} /> Allergy: {al}
+                        </span>
+                      ))}
+                      {patientDetails?.patient?.existingConditions?.map((c: string, i: number) => (
+                        <span key={i} style={{ fontSize: '11px', background: '#eff6ff', color: '#1d4ed8', padding: '3px 8px', borderRadius: '6px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          ● {c}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Vitals Recording Strip */}
+                  <div>
+                    <h4 style={{ fontSize: '13px', fontWeight: 800, color: '#334155', marginBottom: '10px' }}>
+                      Patient Vitals
                     </h4>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '10px' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#64748b', marginBottom: '4px' }}>BP</label>
+                        <input
+                          type="text"
+                          value={bp}
+                          onChange={(e) => setBp(e.target.value)}
+                          style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#64748b', marginBottom: '4px' }}>Temp</label>
+                        <input
+                          type="text"
+                          value={temp}
+                          onChange={(e) => setTemp(e.target.value)}
+                          style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#64748b', marginBottom: '4px' }}>Pulse</label>
+                        <input
+                          type="text"
+                          value={pulse}
+                          onChange={(e) => setPulse(e.target.value)}
+                          style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#64748b', marginBottom: '4px' }}>SpO2</label>
+                        <input
+                          type="text"
+                          value={spO2}
+                          onChange={(e) => setSpO2(e.target.value)}
+                          style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#64748b', marginBottom: '4px' }}>Weight</label>
+                        <input
+                          type="text"
+                          value={weight}
+                          onChange={(e) => setWeight(e.target.value)}
+                          style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <p style={{ fontSize: '12px', color: '#134e4a', lineHeight: '1.4' }}>
-                    {patientDetails.recentAssessments[0].explanation}
-                  </p>
-                </div>
-              )}
 
-              {/* Vitals Recording Strip */}
-              <div>
-                <h4 style={{ fontSize: '13px', fontWeight: 800, color: '#1e293b', marginBottom: '8px' }}>
-                  Patient Vitals
-                </h4>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '10px' }}>
-                  <div>
-                    <label style={{ fontSize: '10px', color: '#64748b', fontWeight: 700 }}>BP</label>
-                    <input type="text" value={bp} onChange={(e) => setBp(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '12px' }} />
-                  </div>
-                  <div>
-                    <label style={{ fontSize: '10px', color: '#64748b', fontWeight: 700 }}>Temp</label>
-                    <input type="text" value={temp} onChange={(e) => setTemp(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '12px' }} />
-                  </div>
-                  <div>
-                    <label style={{ fontSize: '10px', color: '#64748b', fontWeight: 700 }}>Pulse</label>
-                    <input type="text" value={pulse} onChange={(e) => setPulse(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '12px' }} />
-                  </div>
-                  <div>
-                    <label style={{ fontSize: '10px', color: '#64748b', fontWeight: 700 }}>SpO2</label>
-                    <input type="text" value={spO2} onChange={(e) => setSpO2(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '12px' }} />
-                  </div>
-                  <div>
-                    <label style={{ fontSize: '10px', color: '#64748b', fontWeight: 700 }}>Weight</label>
-                    <input type="text" value={weight} onChange={(e) => setWeight(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '12px' }} />
-                  </div>
-                </div>
-              </div>
-
-              {/* Diagnosis & Clinical Findings */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
-                    Clinical Diagnosis / Provisional ICD (comma-separated)
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Acute Viral Bronchitis, Type 2 DM"
-                    value={diagnosis}
-                    onChange={(e) => setDiagnosis(e.target.value)}
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '13px' }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
-                    Recommended Lab / Diagnostic Tests
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. CBC, Blood Sugar Fasting, Chest X-Ray"
-                    value={recommendedTests}
-                    onChange={(e) => setRecommendedTests(e.target.value)}
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '13px' }}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
-                  Clinical Assessment & Examination Notes
-                </label>
-                <textarea
-                  rows={2}
-                  required
-                  placeholder="Enter detailed clinical findings, chest auscultation, abdomen palpation..."
-                  value={clinicalAssessment}
-                  onChange={(e) => setClinicalAssessment(e.target.value)}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '12px', resize: 'none' }}
-                />
-              </div>
-
-              {/* Prescription Composer */}
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Pill size={16} color="#1976d2" />
-                    <h4 style={{ fontSize: '13px', fontWeight: 800, color: '#1e293b' }}>
-                      Digital Prescription Generator
-                    </h4>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleAddPrescription}
-                    style={{
-                      background: '#e3f2fd',
-                      color: '#1976d2',
-                      border: 'none',
-                      borderRadius: '8px',
-                      padding: '4px 10px',
-                      fontSize: '11px',
-                      fontWeight: 800,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                    }}
-                  >
-                    <Plus size={13} /> Add Medicine
-                  </button>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {prescriptions.map((item, idx) => (
-                    <div
-                      key={idx}
-                      style={{
-                        background: '#f8fafc',
-                        border: '1px solid #e2e8f0',
-                        borderRadius: '10px',
-                        padding: '10px 12px',
-                        display: 'grid',
-                        gridTemplateColumns: '2fr 1fr 1.5fr 1fr 2fr auto',
-                        gap: '8px',
-                        alignItems: 'center',
-                      }}
-                    >
+                  {/* Diagnosis & Clinical Findings */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                        Clinical Diagnosis / Provisional ICD (comma-separated)
+                      </label>
                       <input
                         type="text"
-                        placeholder="Medicine Name"
-                        value={item.medicineName}
-                        onChange={(e) => handlePrescriptionChange(idx, 'medicineName', e.target.value)}
-                        style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '11px' }}
+                        placeholder="e.g. Acute Viral Bronchitis, Type 2 DM"
+                        value={diagnosis}
+                        onChange={(e) => setDiagnosis(e.target.value)}
+                        style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '13px' }}
                       />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                        Recommended Lab / Diagnostic Tests
+                      </label>
                       <input
                         type="text"
-                        placeholder="Dosage (500mg)"
-                        value={item.dosage}
-                        onChange={(e) => handlePrescriptionChange(idx, 'dosage', e.target.value)}
-                        style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '11px' }}
+                        placeholder="e.g. CBC, Serum Creatinine, Chest X-Ray"
+                        value={recommendedTests}
+                        onChange={(e) => setRecommendedTests(e.target.value)}
+                        style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '13px' }}
                       />
-                      <input
-                        type="text"
-                        placeholder="Frequency (1-0-1)"
-                        value={item.frequency}
-                        onChange={(e) => handlePrescriptionChange(idx, 'frequency', e.target.value)}
-                        style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '11px' }}
-                      />
-                      <input
-                        type="text"
-                        placeholder="Duration (5 days)"
-                        value={item.duration}
-                        onChange={(e) => handlePrescriptionChange(idx, 'duration', e.target.value)}
-                        style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '11px' }}
-                      />
-                      <input
-                        type="text"
-                        placeholder="Instructions"
-                        value={item.instructions}
-                        onChange={(e) => handlePrescriptionChange(idx, 'instructions', e.target.value)}
-                        style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '11px' }}
-                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                      Clinical Assessment & Examination Notes
+                    </label>
+                    <textarea
+                      rows={2}
+                      placeholder="Enter detailed clinical findings, chest auscultation, abdomen palpation..."
+                      value={clinicalAssessment}
+                      onChange={(e) => setClinicalAssessment(e.target.value)}
+                      style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '13px', resize: 'vertical' }}
+                    />
+                  </div>
+
+                  {/* Digital Prescription Form */}
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <h4 style={{ fontSize: '13px', fontWeight: 800, color: '#0284c7', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Pill size={14} /> Digital Prescription Generator
+                      </h4>
                       <button
                         type="button"
-                        onClick={() => handleRemovePrescription(idx)}
-                        style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer' }}
+                        onClick={handleAddPrescription}
+                        style={{
+                          background: '#f0f9ff',
+                          border: '1px solid #bae6fd',
+                          color: '#0284c7',
+                          padding: '4px 10px',
+                          borderRadius: '6px',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
                       >
-                        <Trash2 size={15} />
+                        <Plus size={12} /> Add Medicine
                       </button>
                     </div>
-                  ))}
-                </div>
-              </div>
 
-              {/* Referral & Disposition */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
-                    Clinical Referral / Disposition
-                  </label>
-                  <select
-                    value={referralType}
-                    onChange={(e) => setReferralType(e.target.value as ReferralType)}
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '13px', background: 'white' }}
-                  >
-                    <option value="Patient Treated">Patient Treated (Routine Discharge)</option>
-                    <option value="Follow-up Required">Follow-up Required</option>
-                    <option value="Referred to Specialist">Referred to Specialist / Higher Centre</option>
-                    <option value="Emergency Referral">Emergency Referral (Trauma / Resuscitation)</option>
-                  </select>
-                </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {prescriptions.map((item, idx) => (
+                        <div key={idx} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1.5fr 1fr 2fr auto', gap: '8px', alignItems: 'center', background: '#f8fafc', padding: '8px 10px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                          <input
+                            type="text"
+                            placeholder="Medicine Name"
+                            value={item.medicineName}
+                            onChange={(e) => handlePrescriptionChange(idx, 'medicineName', e.target.value)}
+                            style={{ padding: '6px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                          />
+                          <input
+                            type="text"
+                            placeholder="Dosage"
+                            value={item.dosage}
+                            onChange={(e) => handlePrescriptionChange(idx, 'dosage', e.target.value)}
+                            style={{ padding: '6px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                          />
+                          <input
+                            type="text"
+                            placeholder="Frequency"
+                            value={item.frequency}
+                            onChange={(e) => handlePrescriptionChange(idx, 'frequency', e.target.value)}
+                            style={{ padding: '6px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                          />
+                          <input
+                            type="text"
+                            placeholder="Duration"
+                            value={item.duration}
+                            onChange={(e) => handlePrescriptionChange(idx, 'duration', e.target.value)}
+                            style={{ padding: '6px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                          />
+                          <input
+                            type="text"
+                            placeholder="Instructions"
+                            value={item.instructions}
+                            onChange={(e) => handlePrescriptionChange(idx, 'instructions', e.target.value)}
+                            style={{ padding: '6px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRemovePrescription(idx)}
+                            style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer' }}
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
 
-                <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
-                    Follow-Up Date (if applicable)
-                  </label>
-                  <input
-                    type="date"
-                    value={followUpDate}
-                    onChange={(e) => setFollowUpDate(e.target.value)}
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '13px', background: 'white' }}
-                  />
-                </div>
-              </div>
+                  {/* Referral & Disposition */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                        Clinical Referral / Disposition
+                      </label>
+                      <select
+                        value={referralType}
+                        onChange={(e) => setReferralType(e.target.value as ReferralType)}
+                        style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '13px', background: 'white' }}
+                      >
+                        <option value="Patient Treated">Patient Treated (Routine Discharge)</option>
+                        <option value="Follow-up Required">Follow-up Required</option>
+                        <option value="Referred to Specialist">Referred to Specialist / Higher Centre</option>
+                        <option value="Emergency Referral">Emergency Referral (Trauma / Resuscitation)</option>
+                      </select>
+                    </div>
 
-              <button
-                type="submit"
-                disabled={submitting}
-                className="btn-primary"
-                style={{
-                  padding: '14px',
-                  justifyContent: 'center',
-                  fontSize: '14px',
-                  borderRadius: '12px',
-                }}
-              >
-                <Send size={16} />
-                {submitting ? 'Submitting EHR...' : 'Complete Consultation & Generate Prescription'}
-              </button>
-            </form>
-          ) : (
-            <div style={{ textAlign: 'center', padding: '60px 20px', color: '#94a3b8' }}>
-              <Stethoscope size={48} style={{ margin: '0 auto 12px', opacity: 0.5 }} />
-              <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#1e293b' }}>No Active Consultation</h3>
-              <p style={{ fontSize: '13px' }}>Select a patient from the queue on the left to start examining.</p>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                        Follow-Up Date (if applicable)
+                      </label>
+                      <input
+                        type="date"
+                        value={followUpDate}
+                        onChange={(e) => setFollowUpDate(e.target.value)}
+                        style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '13px', background: 'white' }}
+                      />
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '12px' }}>
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      className="btn-primary"
+                      style={{
+                        padding: '14px',
+                        justifyContent: 'center',
+                        fontSize: '14px',
+                        borderRadius: '12px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                      }}
+                    >
+                      <Send size={16} />
+                      {submitting ? 'Submitting EHR...' : 'Complete Consultation & Generate Prescription'}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleManualPDFPreview}
+                      style={{
+                        padding: '14px 20px',
+                        fontSize: '14px',
+                        fontWeight: 700,
+                        borderRadius: '12px',
+                        border: '1px solid #00796b',
+                        background: '#e0f2f1',
+                        color: '#00796b',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      <Download size={16} /> Download PDF
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '60px 20px', color: '#94a3b8' }}>
+                  <Stethoscope size={48} style={{ margin: '0 auto 12px', opacity: 0.5 }} />
+                  <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#1e293b' }}>No Active Consultation</h3>
+                  <p style={{ fontSize: '13px' }}>Select a patient from the queue on the left to start examining.</p>
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      </div>
+          </div>
+        </>
+      )}
+
+      {/* Prescription PDF Preview Modal */}
+      <PrescriptionPreviewModal
+        isOpen={previewModalOpen}
+        onClose={() => setPreviewModalOpen(false)}
+        data={currentPrescriptionData}
+      />
     </div>
   );
 };

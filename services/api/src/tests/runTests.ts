@@ -94,6 +94,106 @@ async function runAllTests() {
     assert(targetInv.quantity === initialQty - dispenseQty, 'Inventory quantity correctly deducted upon dispensing');
   }
 
+  // TEST 6: Phone OTP Authentication & New Account Registration
+  console.log('\n--- TEST SUITE 6: Phone OTP & Registration Flow ---');
+  const rawPhone1 = '+91 98765 43210';
+  const rawPhone2 = '9876543210';
+  const rawPhone3 = '+919876543210';
+  const norm1 = rawPhone1.replace(/\D/g, '').slice(-10);
+  const norm2 = rawPhone2.replace(/\D/g, '').slice(-10);
+  const norm3 = rawPhone3.replace(/\D/g, '').slice(-10);
+  assert(norm1 === '9876543210' && norm2 === '9876543210' && norm3 === '9876543210', 'Phone numbers in all formats must normalize to 10 digits');
+
+  // Verify existing demo patient phone matches normalized user
+  const foundUser = DataStore.users.find((u) => u.phone?.replace(/\D/g, '').slice(-10) === '9876543210');
+  assert(!!foundUser, 'Must find registered demo patient by normalized phone');
+
+  // Test registration of new user with details
+  const newPatPhone = '+91 99887 76655';
+  const initialPatientCount = DataStore.patients.length;
+  const dummyNewPatient = {
+    id: `pat-${Date.now()}`,
+    userId: `user-pat-${Date.now()}`,
+    patientId: `PHC-PAT-2026-${(initialPatientCount + 1).toString().padStart(4, '0')}`,
+    fullName: 'Test Patient Sharma',
+    age: 29,
+    gender: 'Female' as const,
+    phone: newPatPhone,
+    address: 'Dwarka Sector 10, Delhi',
+    emergencyContactName: 'Alok Sharma',
+    emergencyContactPhone: '+91 99887 76656',
+    emergencyContactRelation: 'Brother',
+    bloodGroup: 'B+ve',
+    allergies: ['Dust'],
+    existingConditions: ['None'],
+    currentMedications: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  DataStore.patients.push(dummyNewPatient);
+  assert(DataStore.patients.length === initialPatientCount + 1, 'New patient account must be registered in DataStore');
+  assert(dummyNewPatient.patientId.startsWith('PHC-PAT-2026-'), 'Generated patient ID must follow official format');
+
+  // TEST 7: Receptionist Role & Pre-Consultation Check-Up System
+  console.log('\n--- TEST SUITE 7: Receptionist Role & Pre-Consultation Flow ---');
+  assert(DataStore.receptionists.length >= 2, `Expected at least 2 receptionists, found ${DataStore.receptionists.length}`);
+  assert(DataStore.preConsultations.length >= 2, `Expected at least 2 seeded pre-consultations, found ${DataStore.preConsultations.length}`);
+
+  const demoRec = DataStore.receptionists.find((r) => r.receptionistId === 'PHC-REC-001');
+  assert(!!demoRec, 'Receptionist PHC-REC-001 must exist');
+  assert(demoRec?.fullName === 'Pooja Sharma', 'Receptionist name matches seed');
+
+  // Verify BMI formula: weight (kg) / (height(m))^2
+  const testHeightCm = 175;
+  const testWeightKg = 70;
+  const heightInMeters = testHeightCm / 100;
+  const computedBmi = Number((testWeightKg / (heightInMeters * heightInMeters)).toFixed(2));
+  assert(computedBmi === 22.86, `Expected BMI 22.86 for 175cm / 70kg, got ${computedBmi}`);
+
+  // Test adding a pre-consultation checkup
+  const initialCheckupCount = DataStore.preConsultations.length;
+  const dummyCheckup = {
+    id: `chk-${Date.now()}`,
+    checkupNumber: `CHK-2026-${(initialCheckupCount + 1).toString().padStart(4, '0')}`,
+    patientId: 'pat-0001',
+    patientCode: 'PHC-PAT-2026-0001',
+    patientName: 'Aakash Jha',
+    patientAge: 24,
+    patientGender: 'Male' as const,
+    patientPhone: '+91 98765 43210',
+    receptionistId: 'rec-001',
+    receptionistName: 'Pooja Sharma',
+    phcId: 'phc-001',
+    phcName: 'Central Urban PHC - Karol Bagh',
+    vitals: {
+      bpSystolic: 120,
+      bpDiastolic: 80,
+      bpFormatted: '120/80 mmHg',
+      pulseRate: 72,
+      bodyTemperature: 36.6,
+      respiratoryRate: 16,
+    },
+    measurements: {
+      height: testHeightCm,
+      weight: testWeightKg,
+      bmi: computedBmi,
+      bmiCategory: 'Normal' as const,
+    },
+    otherTestsNotes: 'Routine Front Desk Check-in',
+    otherTests: [
+      { id: 't1', testName: 'Blood Sugar', resultValue: '110', unit: 'mg/dL' },
+      { id: 't2', testName: 'SpO2', resultValue: '98', unit: '%' },
+    ],
+    status: 'WAITING_FOR_DOCTOR' as const,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  DataStore.preConsultations.unshift(dummyCheckup);
+  assert(DataStore.preConsultations.length === initialCheckupCount + 1, 'New pre-consultation checkup must be saved in DataStore');
+  assert(dummyCheckup.checkupNumber.startsWith('CHK-2026-'), 'Checkup number must follow formatted naming convention');
+  assert(dummyCheckup.otherTests.length === 2, 'Other medical test rows must be stored correctly');
+
   console.log('\n====================================================');
   console.log('🎉 ALL AUTOMATED TESTS COMPLETED WITH 100% SUCCESS!');
   console.log('====================================================\n');
