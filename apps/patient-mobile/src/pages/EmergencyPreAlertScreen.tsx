@@ -17,6 +17,7 @@ import {
   ShieldAlert,
   ArrowLeft,
   FileText,
+  X,
 } from 'lucide-react';
 import {
   EmergencyPreAlert,
@@ -87,7 +88,6 @@ export const EmergencyPreAlertScreen: React.FC<EmergencyPreAlertScreenProps> = (
 
       if (alertsRes.success && alertsRes.alerts) {
         setAlerts(alertsRes.alerts);
-        // If there's an active alert, default to tracking tab
         const hasActive = alertsRes.alerts.some(
           (a: EmergencyPreAlert) =>
             a.status === 'ALERT_RAISED' || a.status === 'ACKNOWLEDGED' || a.status === 'IN_TRANSIT'
@@ -158,166 +158,323 @@ export const EmergencyPreAlertScreen: React.FC<EmergencyPreAlertScreenProps> = (
   );
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 pb-20">
+    <div style={{ minHeight: '100vh', background: '#090d16', color: '#f1f5f9', paddingBottom: '80px', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
       {/* Top Header */}
-      <div className="bg-gradient-to-r from-red-950 via-slate-900 to-red-900 p-4 sticky top-0 z-30 border-b border-red-800/40 shadow-xl flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      <div
+        style={{
+          background: 'linear-gradient(135deg, #7f1d1d 0%, #0f172a 60%, #881337 100%)',
+          padding: '16px',
+          position: 'sticky',
+          top: 0,
+          zIndex: 30,
+          borderBottom: '1px solid rgba(239, 68, 68, 0.3)',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           {onBack && (
             <button
               onClick={onBack}
-              className="p-1.5 bg-slate-800/80 hover:bg-slate-700 text-slate-300 rounded-lg transition"
+              style={{
+                padding: '8px',
+                borderRadius: '8px',
+                background: 'rgba(255, 255, 255, 0.1)',
+                border: 'none',
+                color: '#ffffff',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
             >
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft size={18} />
             </button>
           )}
-          <div className="p-2 bg-red-600/30 border border-red-500/40 rounded-xl text-red-400">
-            <Siren className="w-6 h-6 animate-pulse" />
+          <div
+            style={{
+              width: '36px',
+              height: '36px',
+              borderRadius: '10px',
+              background: 'rgba(239, 68, 68, 0.25)',
+              border: '1px solid #f87171',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#fca5a5',
+            }}
+          >
+            <Siren size={20} />
           </div>
           <div>
-            <h1 className="text-base font-bold text-white flex items-center gap-1.5">
-              Emergency Pre-Alert
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-500/30 text-red-300 font-mono">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <h1 style={{ fontSize: '15px', fontWeight: 800, margin: 0, color: '#ffffff' }}>
+                Emergency Pre-Alert
+              </h1>
+              <span
+                style={{
+                  fontSize: '9px',
+                  fontWeight: 800,
+                  padding: '2px 6px',
+                  borderRadius: '10px',
+                  background: 'rgba(239, 68, 68, 0.4)',
+                  color: '#fecaca',
+                  border: '1px solid #f87171',
+                }}
+              >
                 ASHA SOS
               </span>
-            </h1>
-            <p className="text-[11px] text-slate-400">
-              Inbound casualty alert to PHC/CHC Casualty Desk
+            </div>
+            <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#94a3b8' }}>
+              Inbound casualty broadcast to PHC Casualty
             </p>
           </div>
         </div>
 
         <button
           onClick={() => loadData(true)}
-          className="p-2 bg-slate-800 text-slate-300 hover:text-white rounded-lg border border-slate-700 transition"
+          style={{
+            padding: '8px',
+            borderRadius: '8px',
+            background: 'rgba(255, 255, 255, 0.1)',
+            border: 'none',
+            color: '#cbd5e1',
+            cursor: 'pointer',
+          }}
           title="Refresh live status"
         >
-          <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+          <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} />
         </button>
       </div>
 
-      {/* Tabs */}
-      <div className="flex bg-slate-900 border-b border-slate-800 p-1.5">
+      {/* Navigation Tabs */}
+      <div style={{ display: 'flex', background: '#0f172a', borderBottom: '1px solid #1e293b', padding: '6px' }}>
         <button
           onClick={() => setActiveTab('tracking')}
-          className={`flex-1 py-2 text-xs font-bold rounded-lg transition flex items-center justify-center gap-1.5 ${
-            activeTab === 'tracking'
-              ? 'bg-red-600 text-white shadow'
-              : 'text-slate-400 hover:text-white'
-          }`}
+          style={{
+            flex: 1,
+            padding: '8px',
+            fontSize: '12px',
+            fontWeight: 800,
+            borderRadius: '8px',
+            border: 'none',
+            cursor: 'pointer',
+            background: activeTab === 'tracking' ? '#dc2626' : 'transparent',
+            color: activeTab === 'tracking' ? '#ffffff' : '#94a3b8',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '6px',
+            transition: 'all 0.2s ease',
+          }}
         >
-          <Clock className="w-4 h-4" />
+          <Clock size={14} />
           <span>Active Tracking ({activeAlerts.length})</span>
         </button>
         <button
           onClick={() => setActiveTab('raise')}
-          className={`flex-1 py-2 text-xs font-bold rounded-lg transition flex items-center justify-center gap-1.5 ${
-            activeTab === 'raise'
-              ? 'bg-red-600 text-white shadow'
-              : 'text-slate-400 hover:text-white'
-          }`}
+          style={{
+            flex: 1,
+            padding: '8px',
+            fontSize: '12px',
+            fontWeight: 800,
+            borderRadius: '8px',
+            border: 'none',
+            cursor: 'pointer',
+            background: activeTab === 'raise' ? '#dc2626' : 'transparent',
+            color: activeTab === 'raise' ? '#ffffff' : '#94a3b8',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '6px',
+            transition: 'all 0.2s ease',
+          }}
         >
-          <Plus className="w-4 h-4" />
+          <Plus size={14} />
           <span>Raise New Alert</span>
         </button>
       </div>
 
       {/* Success Notification */}
       {successMessage && (
-        <div className="m-4 p-3 bg-emerald-950/80 border border-emerald-600/60 rounded-xl text-emerald-300 text-xs flex items-center justify-between animate-fadeIn">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+        <div
+          style={{
+            margin: '16px',
+            padding: '12px 16px',
+            background: 'rgba(5, 150, 105, 0.2)',
+            border: '1px solid #059669',
+            borderRadius: '12px',
+            color: '#6ee7b7',
+            fontSize: '12px',
+            fontWeight: 700,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <CheckCircle2 size={16} color="#34d399" />
             <span>{successMessage}</span>
           </div>
-          <button onClick={() => setSuccessMessage(null)} className="text-emerald-400 font-bold ml-2">
-            ✕
+          <button onClick={() => setSuccessMessage(null)} style={{ background: 'none', border: 'none', color: '#6ee7b7', cursor: 'pointer' }}>
+            <X size={14} />
           </button>
         </div>
       )}
 
       {/* Quick SOS Call Buttons */}
-      <div className="p-4 grid grid-cols-2 gap-2">
+      <div style={{ padding: '16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
         <a
           href="tel:108"
-          className="flex items-center justify-center gap-2 py-2.5 px-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl text-xs shadow-lg shadow-red-950 transition text-center"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            padding: '12px',
+            background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+            color: '#ffffff',
+            fontWeight: 800,
+            borderRadius: '12px',
+            fontSize: '12px',
+            textDecoration: 'none',
+            boxShadow: '0 4px 14px rgba(220, 38, 38, 0.4)',
+          }}
         >
-          <Phone className="w-4 h-4" />
+          <Phone size={15} />
           <span>Call 108 Ambulance</span>
         </a>
         <a
           href="tel:112"
-          className="flex items-center justify-center gap-2 py-2.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl text-xs border border-slate-700 transition text-center"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            padding: '12px',
+            background: '#1e293b',
+            color: '#f8fafc',
+            fontWeight: 800,
+            borderRadius: '12px',
+            fontSize: '12px',
+            textDecoration: 'none',
+            border: '1px solid #334155',
+          }}
         >
-          <ShieldAlert className="w-4 h-4 text-yellow-400" />
-          <span>Call 112 Emergency</span>
+          <ShieldAlert size={15} color="#facc15" />
+          <span>Call 112 SOS</span>
         </a>
       </div>
 
       {/* TAB 1: Live Tracking Screen */}
       {activeTab === 'tracking' && (
-        <div className="p-4 space-y-4">
+        <div style={{ padding: '0 16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {activeAlerts.length === 0 ? (
-            <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-8 text-center space-y-3">
-              <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto" />
-              <h3 className="text-base font-bold text-white">No In-Transit Emergency Cases</h3>
-              <p className="text-xs text-slate-400 max-w-xs mx-auto">
+            <div
+              style={{
+                background: '#0f172a',
+                border: '1px solid #1e293b',
+                borderRadius: '16px',
+                padding: '40px 20px',
+                textAlign: 'center',
+              }}
+            >
+              <CheckCircle2 size={40} color="#10b981" style={{ margin: '0 auto 12px auto' }} />
+              <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#ffffff', margin: '0 0 6px 0' }}>
+                No In-Transit Emergency Cases
+              </h3>
+              <p style={{ fontSize: '12px', color: '#94a3b8', maxWidth: '300px', margin: '0 auto 16px auto' }}>
                 No active emergency pre-alerts en-route at this time. Click "Raise New Alert" to notify the PHC casualty team.
               </p>
               <button
                 onClick={() => setActiveTab('raise')}
-                className="px-4 py-2 bg-red-600 text-white text-xs font-semibold rounded-xl shadow mt-2"
+                style={{
+                  padding: '9px 18px',
+                  borderRadius: '10px',
+                  border: 'none',
+                  background: '#dc2626',
+                  color: '#ffffff',
+                  fontWeight: 800,
+                  fontSize: '12px',
+                  cursor: 'pointer',
+                }}
               >
-                Raise Emergency Alert
+                + Raise Emergency Pre-Alert
               </button>
             </div>
           ) : (
             activeAlerts.map((alert) => (
               <div
                 key={alert.id}
-                className="bg-slate-900 border border-red-800/60 rounded-2xl overflow-hidden shadow-xl space-y-3"
+                style={{
+                  background: '#0f172a',
+                  border: '1.5px solid #7f1d1d',
+                  borderRadius: '16px',
+                  overflow: 'hidden',
+                  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                }}
               >
-                {/* Alert Top Strip */}
-                <div className="bg-gradient-to-r from-red-950 to-slate-900 p-3.5 border-b border-red-800/40 flex items-center justify-between">
+                {/* Top Alert Strip */}
+                <div
+                  style={{
+                    background: 'linear-gradient(135deg, #7f1d1d 0%, #1e1b4b 100%)',
+                    padding: '14px 16px',
+                    borderBottom: '1px solid rgba(239, 68, 68, 0.3)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
+                >
                   <div>
-                    <span className="text-[10px] font-mono text-red-400 font-bold tracking-wider uppercase">
+                    <span style={{ fontSize: '10px', fontFamily: 'monospace', color: '#fca5a5', fontWeight: 800, letterSpacing: '0.5px' }}>
                       {alert.alertNumber}
                     </span>
-                    <h3 className="text-base font-bold text-white mt-0.5">
+                    <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#ffffff', margin: '2px 0 0 0' }}>
                       {alert.patientName} ({alert.patientAge}y • {alert.patientGender})
                     </h3>
                   </div>
 
-                  <div className="text-right">
-                    <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-red-600 text-white inline-flex items-center gap-1 animate-pulse">
-                      <AlertTriangle className="w-3 h-3" />
+                  <div style={{ textAlign: 'right' }}>
+                    <span
+                      style={{
+                        padding: '3px 8px',
+                        borderRadius: '12px',
+                        fontSize: '10px',
+                        fontWeight: 800,
+                        background: '#dc2626',
+                        color: '#ffffff',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                      }}
+                    >
+                      <AlertTriangle size={11} />
                       {alert.severity}
                     </span>
-                    <p className="text-[10px] text-slate-400 mt-1">
-                      ETA ~{alert.liveEta?.remainingMinutes || alert.estimatedArrivalMinutes} min
+                    <p style={{ margin: '4px 0 0 0', fontSize: '10px', color: '#cbd5e1', fontWeight: 700 }}>
+                      ETA ~{alert.liveEta?.remainingMinutes ?? alert.estimatedArrivalMinutes} min
                     </p>
                   </div>
                 </div>
 
-                {/* Status Progression Lifecycle */}
-                <div className="px-4 py-2 bg-slate-950/70 border-b border-slate-800/80">
-                  <div className="flex items-center justify-between text-[10px] font-semibold text-slate-400">
-                    <span className={alert.status === 'ALERT_RAISED' ? 'text-red-400 font-bold' : ''}>
-                      1. Alert Raised
-                    </span>
-                    <span className={alert.status === 'ACKNOWLEDGED' ? 'text-blue-400 font-bold' : ''}>
-                      2. Acknowledged
-                    </span>
-                    <span className={alert.status === 'IN_TRANSIT' ? 'text-amber-400 font-bold' : ''}>
-                      3. In Transit
-                    </span>
-                    <span className={alert.status === 'ARRIVED' ? 'text-emerald-400 font-bold' : ''}>
-                      4. Arrived
-                    </span>
+                {/* Status Progression Bar */}
+                <div style={{ padding: '0 16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', fontWeight: 700, color: '#94a3b8', marginBottom: '6px' }}>
+                    <span style={{ color: alert.status === 'ALERT_RAISED' ? '#f87171' : undefined }}>1. Alert Raised</span>
+                    <span style={{ color: alert.status === 'ACKNOWLEDGED' ? '#60a5fa' : undefined }}>2. Doctor Prepared</span>
+                    <span style={{ color: alert.status === 'IN_TRANSIT' ? '#fbbf24' : undefined }}>3. In-Transit</span>
+                    <span style={{ color: alert.status === 'ARRIVED' ? '#34d399' : undefined }}>4. Arrived</span>
                   </div>
-
-                  <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden mt-2">
+                  <div style={{ width: '100%', height: '6px', background: '#1e293b', borderRadius: '4px', overflow: 'hidden' }}>
                     <div
-                      className="bg-red-500 h-full transition-all duration-500"
                       style={{
+                        height: '100%',
+                        background: 'linear-gradient(90deg, #ef4444, #f59e0b, #10b981)',
                         width:
                           alert.status === 'ALERT_RAISED'
                             ? '25%'
@@ -325,83 +482,74 @@ export const EmergencyPreAlertScreen: React.FC<EmergencyPreAlertScreenProps> = (
                             ? '50%'
                             : alert.status === 'IN_TRANSIT'
                             ? '75%'
-                            : alert.status === 'ARRIVED'
-                            ? '90%'
                             : '100%',
+                        transition: 'all 0.4s ease',
                       }}
                     />
                   </div>
                 </div>
 
-                {/* Vitals Mini Badge */}
-                <div className="px-4 grid grid-cols-4 gap-2 text-center text-xs">
-                  <div className="bg-slate-950 p-2 rounded-xl border border-slate-800">
-                    <span className="text-[9px] text-slate-400 block font-medium">BP</span>
-                    <span className="font-bold text-white text-xs">{alert.vitals.bp || '--'}</span>
+                {/* Vitals Telemetry */}
+                <div style={{ padding: '0 16px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', textAlign: 'center' }}>
+                  <div style={{ background: '#090d16', padding: '8px 4px', borderRadius: '8px', border: '1px solid #1e293b' }}>
+                    <span style={{ fontSize: '9px', color: '#94a3b8', display: 'block', fontWeight: 700 }}>BP</span>
+                    <span style={{ fontSize: '12px', fontWeight: 800, color: '#ffffff' }}>{alert.vitals.bp || '--'}</span>
                   </div>
-                  <div className="bg-slate-950 p-2 rounded-xl border border-slate-800">
-                    <span className="text-[9px] text-slate-400 block font-medium">SpO2</span>
-                    <span className="font-bold text-red-400 text-xs">
+                  <div style={{ background: '#090d16', padding: '8px 4px', borderRadius: '8px', border: '1px solid #1e293b' }}>
+                    <span style={{ fontSize: '9px', color: '#94a3b8', display: 'block', fontWeight: 700 }}>SpO2</span>
+                    <span style={{ fontSize: '12px', fontWeight: 800, color: alert.vitals.spO2 && alert.vitals.spO2 < 92 ? '#f87171' : '#34d399' }}>
                       {alert.vitals.spO2 ? `${alert.vitals.spO2}%` : '--'}
                     </span>
                   </div>
-                  <div className="bg-slate-950 p-2 rounded-xl border border-slate-800">
-                    <span className="text-[9px] text-slate-400 block font-medium">Pulse</span>
-                    <span className="font-bold text-white text-xs">{alert.vitals.pulse || '--'}</span>
+                  <div style={{ background: '#090d16', padding: '8px 4px', borderRadius: '8px', border: '1px solid #1e293b' }}>
+                    <span style={{ fontSize: '9px', color: '#94a3b8', display: 'block', fontWeight: 700 }}>Pulse</span>
+                    <span style={{ fontSize: '12px', fontWeight: 800, color: '#ffffff' }}>{alert.vitals.pulse || '--'}</span>
                   </div>
-                  <div className="bg-slate-950 p-2 rounded-xl border border-slate-800">
-                    <span className="text-[9px] text-slate-400 block font-medium">Temp</span>
-                    <span className="font-bold text-white text-xs">{alert.vitals.temperature || '--'}°</span>
+                  <div style={{ background: '#090d16', padding: '8px 4px', borderRadius: '8px', border: '1px solid #1e293b' }}>
+                    <span style={{ fontSize: '9px', color: '#94a3b8', display: 'block', fontWeight: 700 }}>Temp</span>
+                    <span style={{ fontSize: '12px', fontWeight: 800, color: '#ffffff' }}>{alert.vitals.temperature ? `${alert.vitals.temperature}°` : '--'}</span>
                   </div>
                 </div>
 
-                {/* Doctor's Preparation Instructions (Crucial for ASHA) */}
+                {/* Doctor Triage Preparation Instructions */}
                 {alert.doctorPreparationInstructions && alert.doctorPreparationInstructions.length > 0 ? (
-                  <div className="mx-4 p-3 bg-blue-950/40 border border-blue-600/50 rounded-xl space-y-2">
-                    <div className="flex items-center justify-between text-xs text-blue-300 font-bold">
-                      <span className="flex items-center gap-1.5">
-                        <Stethoscope className="w-4 h-4 text-blue-400" />
-                        Doctor Instructions ({alert.acknowledgedByDoctorName || 'Duty Doctor'})
+                  <div style={{ margin: '0 16px', background: 'rgba(30, 58, 138, 0.3)', border: '1px solid #3b82f6', borderRadius: '12px', padding: '12px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 800, color: '#93c5fd', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <Stethoscope size={13} />
+                        Doctor Orders ({alert.acknowledgedByDoctorName || 'Duty Physician'})
                       </span>
-                      <span className="text-[10px] font-mono text-blue-400 bg-blue-900/50 px-2 py-0.5 rounded">
+                      <span style={{ fontSize: '10px', color: '#bfdbfe', background: '#1e3a8a', padding: '2px 6px', borderRadius: '4px' }}>
                         {alert.bedAssigned || 'Red Bay'}
                       </span>
                     </div>
 
-                    <ul className="space-y-1 text-xs text-slate-200">
+                    <ul style={{ margin: 0, paddingLeft: '16px', fontSize: '11px', color: '#e2e8f0', display: 'flex', flexDirection: 'column', gap: '3px' }}>
                       {alert.doctorPreparationInstructions.map((inst, idx) => (
-                        <li key={idx} className="flex items-start gap-1.5">
-                          <span className="text-blue-400 font-bold">✓</span>
-                          <span>{inst}</span>
-                        </li>
+                        <li key={idx} style={{ fontWeight: 600 }}>{inst}</li>
                       ))}
                     </ul>
 
                     {alert.doctorPreparationNotes && (
-                      <p className="text-[11px] text-slate-300 italic bg-blue-950/60 p-2 rounded-lg border border-blue-800/40">
-                        "{alert.doctorPreparationNotes}"
-                      </p>
+                      <div style={{ marginTop: '6px', fontSize: '11px', color: '#cbd5e1', fontStyle: 'italic', borderTop: '1px dashed #3b82f6', paddingTop: '4px' }}>
+                        Note: {alert.doctorPreparationNotes}
+                      </div>
                     )}
                   </div>
                 ) : (
-                  <div className="mx-4 p-3 bg-red-950/30 border border-dashed border-red-700/50 rounded-xl flex items-center gap-2 text-xs text-red-300">
-                    <Clock className="w-4 h-4 text-red-400 animate-spin" />
+                  <div style={{ margin: '0 16px', background: 'rgba(127, 29, 29, 0.25)', border: '1px dashed #ef4444', borderRadius: '10px', padding: '10px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: '#fca5a5' }}>
+                    <Clock size={14} className="animate-spin" />
                     <span>Awaiting Doctor Acknowledgment & Preparation Protocols...</span>
                   </div>
                 )}
 
-                {/* Target PHC & Ambulance Info */}
-                <div className="px-4 py-3 bg-slate-950 border-t border-slate-800/80 text-xs space-y-1.5">
-                  <div className="flex items-center justify-between text-slate-300">
-                    <span className="flex items-center gap-1">
-                      <MapPin className="w-3.5 h-3.5 text-red-400" />
-                      Destination: <strong className="text-white">{alert.targetFacilityName}</strong>
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-slate-400 text-[11px]">
-                    <span>Transport: {alert.transportMode.replace('_', ' ')} ({alert.ambulanceVehicleNumber})</span>
-                    <span>ASHA: {alert.ashaWorkerName}</span>
-                  </div>
+                {/* Target Facility Footer */}
+                <div style={{ padding: '12px 16px', background: '#090d16', borderTop: '1px solid #1e293b', fontSize: '11px', color: '#94a3b8', display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <MapPin size={12} color="#f87171" />
+                    Destination: <strong style={{ color: '#ffffff' }}>{alert.targetFacilityName}</strong>
+                  </span>
+                  <span>ASHA: {alert.ashaWorkerName}</span>
                 </div>
               </div>
             ))
@@ -411,16 +559,17 @@ export const EmergencyPreAlertScreen: React.FC<EmergencyPreAlertScreenProps> = (
 
       {/* TAB 2: Raise New Alert Form */}
       {activeTab === 'raise' && (
-        <form onSubmit={handleRaiseAlert} className="p-4 space-y-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-4">
-            <h3 className="text-sm font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-2">
-              <Siren className="w-4 h-4 text-red-500" />
-              Patient Identification
+        <form onSubmit={handleRaiseAlert} style={{ padding: '0 16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {/* Patient Identification Card */}
+          <div style={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <h3 style={{ fontSize: '13px', fontWeight: 800, color: '#ffffff', margin: 0, display: 'flex', alignItems: 'center', gap: '6px', borderBottom: '1px solid #1e293b', paddingBottom: '8px' }}>
+              <Siren size={15} color="#ef4444" />
+              <span>1. Patient Details</span>
             </h3>
 
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
-                Patient Name *
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#94a3b8', marginBottom: '4px' }}>
+                Patient Full Name *
               </label>
               <input
                 type="text"
@@ -428,27 +577,54 @@ export const EmergencyPreAlertScreen: React.FC<EmergencyPreAlertScreenProps> = (
                 value={patientName}
                 onChange={(e) => setPatientName(e.target.value)}
                 placeholder="e.g. Rameshwar Prasad"
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-red-500"
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  borderRadius: '8px',
+                  border: '1px solid #334155',
+                  background: '#090d16',
+                  fontSize: '12px',
+                  color: '#ffffff',
+                  boxSizing: 'border-box',
+                }}
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">Age *</label>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#94a3b8', marginBottom: '4px' }}>Age *</label>
                 <input
                   type="number"
                   value={patientAge}
                   onChange={(e) => setPatientAge(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white"
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    borderRadius: '8px',
+                    border: '1px solid #334155',
+                    background: '#090d16',
+                    fontSize: '12px',
+                    color: '#ffffff',
+                    boxSizing: 'border-box',
+                  }}
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">Gender *</label>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#94a3b8', marginBottom: '4px' }}>Gender *</label>
                 <select
                   value={patientGender}
                   onChange={(e: any) => setPatientGender(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white"
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    borderRadius: '8px',
+                    border: '1px solid #334155',
+                    background: '#090d16',
+                    fontSize: '12px',
+                    color: '#ffffff',
+                    boxSizing: 'border-box',
+                  }}
                 >
                   <option value="MALE">Male</option>
                   <option value="FEMALE">Female</option>
@@ -458,88 +634,150 @@ export const EmergencyPreAlertScreen: React.FC<EmergencyPreAlertScreenProps> = (
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
-                Pickup Village / Sub-Centre *
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#94a3b8', marginBottom: '4px' }}>
+                Pickup Location / Sub-Centre *
               </label>
               <input
                 type="text"
                 required
                 value={sourceLocation}
                 onChange={(e) => setSourceLocation(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white"
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  borderRadius: '8px',
+                  border: '1px solid #334155',
+                  background: '#090d16',
+                  fontSize: '12px',
+                  color: '#ffffff',
+                  boxSizing: 'border-box',
+                }}
               />
             </div>
           </div>
 
-          {/* Vitals Assessment */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-4">
-            <h3 className="text-sm font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-2">
-              <HeartPulse className="w-4 h-4 text-red-400" />
-              On-Scene Vitals
+          {/* Vitals Telemetry Card */}
+          <div style={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <h3 style={{ fontSize: '13px', fontWeight: 800, color: '#ffffff', margin: 0, display: 'flex', alignItems: 'center', gap: '6px', borderBottom: '1px solid #1e293b', paddingBottom: '8px' }}>
+              <HeartPulse size={15} color="#ef4444" />
+              <span>2. Field Vitals</span>
             </h3>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
               <div>
-                <label className="block text-[11px] text-slate-400 mb-1">Blood Pressure</label>
+                <label style={{ display: 'block', fontSize: '10px', color: '#94a3b8', marginBottom: '3px' }}>Blood Pressure</label>
                 <input
                   type="text"
                   value={vitalBp}
                   onChange={(e) => setVitalBp(e.target.value)}
                   placeholder="88/56"
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white text-center font-bold"
+                  style={{
+                    width: '100%',
+                    padding: '8px',
+                    borderRadius: '8px',
+                    border: '1px solid #334155',
+                    background: '#090d16',
+                    fontSize: '12px',
+                    color: '#ffffff',
+                    textAlign: 'center',
+                    fontWeight: 700,
+                    boxSizing: 'border-box',
+                  }}
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] text-slate-400 mb-1">SpO2 Oxygen %</label>
+                <label style={{ display: 'block', fontSize: '10px', color: '#94a3b8', marginBottom: '3px' }}>SpO2 (%)</label>
                 <input
                   type="number"
                   value={vitalSpo2}
                   onChange={(e) => setVitalSpo2(e.target.value)}
                   placeholder="88"
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-red-400 text-center font-bold"
+                  style={{
+                    width: '100%',
+                    padding: '8px',
+                    borderRadius: '8px',
+                    border: '1px solid #334155',
+                    background: '#090d16',
+                    fontSize: '12px',
+                    color: '#f87171',
+                    textAlign: 'center',
+                    fontWeight: 700,
+                    boxSizing: 'border-box',
+                  }}
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] text-slate-400 mb-1">Pulse (bpm)</label>
+                <label style={{ display: 'block', fontSize: '10px', color: '#94a3b8', marginBottom: '3px' }}>Pulse (bpm)</label>
                 <input
                   type="number"
                   value={vitalPulse}
                   onChange={(e) => setVitalPulse(e.target.value)}
                   placeholder="120"
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white text-center font-bold"
+                  style={{
+                    width: '100%',
+                    padding: '8px',
+                    borderRadius: '8px',
+                    border: '1px solid #334155',
+                    background: '#090d16',
+                    fontSize: '12px',
+                    color: '#ffffff',
+                    textAlign: 'center',
+                    fontWeight: 700,
+                    boxSizing: 'border-box',
+                  }}
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] text-slate-400 mb-1">Temperature (°F)</label>
+                <label style={{ display: 'block', fontSize: '10px', color: '#94a3b8', marginBottom: '3px' }}>Temperature (°F)</label>
                 <input
                   type="text"
                   value={vitalTemp}
                   onChange={(e) => setVitalTemp(e.target.value)}
                   placeholder="98.6"
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white text-center font-bold"
+                  style={{
+                    width: '100%',
+                    padding: '8px',
+                    borderRadius: '8px',
+                    border: '1px solid #334155',
+                    background: '#090d16',
+                    fontSize: '12px',
+                    color: '#ffffff',
+                    textAlign: 'center',
+                    fontWeight: 700,
+                    boxSizing: 'border-box',
+                  }}
                 />
               </div>
             </div>
           </div>
 
-          {/* Clinical Symptoms & Destination */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-4">
-            <h3 className="text-sm font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-2">
-              <Truck className="w-4 h-4 text-sky-400" />
-              Transfer & Target Facility
+          {/* Transfer & Destination Card */}
+          <div style={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <h3 style={{ fontSize: '13px', fontWeight: 800, color: '#ffffff', margin: 0, display: 'flex', alignItems: 'center', gap: '6px', borderBottom: '1px solid #1e293b', paddingBottom: '8px' }}>
+              <Truck size={15} color="#38bdf8" />
+              <span>3. Target PHC & Urgency</span>
             </h3>
 
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#94a3b8', marginBottom: '4px' }}>
                 Destination PHC / CHC *
               </label>
               <select
                 value={targetFacilityId}
                 onChange={(e) => setTargetFacilityId(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white"
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  borderRadius: '8px',
+                  border: '1px solid #334155',
+                  background: '#090d16',
+                  fontSize: '12px',
+                  color: '#ffffff',
+                  boxSizing: 'border-box',
+                }}
               >
                 {phcs.map((p) => (
                   <option key={p.id} value={p.id}>
@@ -550,43 +788,70 @@ export const EmergencyPreAlertScreen: React.FC<EmergencyPreAlertScreenProps> = (
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
-                Chief Emergency Complaints *
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#94a3b8', marginBottom: '4px' }}>
+                Chief Complaints *
               </label>
               <input
                 type="text"
                 required
                 value={chiefComplaints}
                 onChange={(e) => setChiefComplaints(e.target.value)}
-                placeholder="Severe chest pain, breathlessness, vomiting"
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white"
+                placeholder="e.g. Severe Chest Pain, Breathlessness"
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  borderRadius: '8px',
+                  border: '1px solid #334155',
+                  background: '#090d16',
+                  fontSize: '12px',
+                  color: '#ffffff',
+                  boxSizing: 'border-box',
+                }}
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">Severity *</label>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#94a3b8', marginBottom: '4px' }}>Severity *</label>
                 <select
                   value={severity}
                   onChange={(e: any) => setSeverity(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white font-bold"
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    borderRadius: '8px',
+                    border: '1px solid #334155',
+                    background: '#090d16',
+                    fontSize: '12px',
+                    color: '#ffffff',
+                    fontWeight: 700,
+                    boxSizing: 'border-box',
+                  }}
                 >
-                  <option value="CRITICAL">🔴 Critical (Immediate)</option>
-                  <option value="SEVERE">🟠 Severe (Urgent)</option>
+                  <option value="CRITICAL">🔴 Critical</option>
+                  <option value="SEVERE">🟠 Severe</option>
                   <option value="MODERATE">🟡 Moderate</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">
-                  Estimated Arrival (min) *
-                </label>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#94a3b8', marginBottom: '4px' }}>ETA (Minutes) *</label>
                 <input
                   type="number"
                   required
                   value={etaMins}
                   onChange={(e) => setEtaMins(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white font-bold"
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    borderRadius: '8px',
+                    border: '1px solid #334155',
+                    background: '#090d16',
+                    fontSize: '12px',
+                    color: '#ffffff',
+                    fontWeight: 700,
+                    boxSizing: 'border-box',
+                  }}
                 />
               </div>
             </div>
@@ -595,10 +860,25 @@ export const EmergencyPreAlertScreen: React.FC<EmergencyPreAlertScreenProps> = (
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-3.5 bg-red-600 hover:bg-red-500 text-white font-bold rounded-2xl shadow-xl shadow-red-950 transition flex items-center justify-center gap-2 text-sm"
+            style={{
+              width: '100%',
+              padding: '14px',
+              borderRadius: '14px',
+              border: 'none',
+              background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+              color: '#ffffff',
+              fontSize: '13px',
+              fontWeight: 800,
+              cursor: isSubmitting ? 'not-allowed' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              boxShadow: '0 4px 18px rgba(220, 38, 38, 0.45)',
+            }}
           >
-            <Siren className="w-5 h-5 animate-pulse" />
-            <span>{isSubmitting ? 'Broadcasting Alert...' : 'Broadcast Emergency Pre-Alert'}</span>
+            <Siren size={18} />
+            <span>{isSubmitting ? 'Broadcasting Emergency SOS...' : '🚨 Broadcast Emergency Pre-Alert'}</span>
           </button>
         </form>
       )}
