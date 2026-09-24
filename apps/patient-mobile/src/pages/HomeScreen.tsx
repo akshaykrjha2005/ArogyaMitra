@@ -12,16 +12,21 @@ import {
   ShieldAlert,
   AlertTriangle,
   PhoneCall,
+  Phone,
+  MessageSquare,
   Activity,
+  AlertCircle,
+  History,
+  Tent,
 } from 'lucide-react';
-import { PatientProfile, Appointment, PHC } from '@phc-connect/types';
+import { PatientProfile, Appointment, PHC, AppLanguage, resolveTranslationObject } from '@phc-connect/types';
 import { apiClient } from '../services/api';
 
 interface Props {
   patient: PatientProfile | null;
   onNavigate: (tab: string, extra?: any) => void;
   onOpenEmergency: () => void;
-  lang: 'en' | 'hi' | 'kn';
+  lang: AppLanguage;
 }
 
 export const HomeScreen: React.FC<Props> = ({ patient, onNavigate, onOpenEmergency, lang }) => {
@@ -29,13 +34,10 @@ export const HomeScreen: React.FC<Props> = ({ patient, onNavigate, onOpenEmergen
   const [nearbyPHCs, setNearbyPHCs] = useState<PHC[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const t = {
+  const t = resolveTranslationObject(lang, {
     en: {
       greeting: `Hello, ${patient?.fullName?.split(' ')[0] || 'Patient'} 👋`,
       question: 'How are you feeling today?',
-      triageCardTitle: 'AI Symptom Assessment & Triage',
-      triageCardDesc: 'Describe your symptoms, upload photos of rashes or wounds, and receive immediate preliminary triage guidance.',
-      triageBtn: 'Start Assessment Now',
       quickActions: 'Quick Health Services',
       findPHC: 'Nearby PHCs',
       findPHCDesc: 'Find closest health centre & directions',
@@ -49,6 +51,18 @@ export const HomeScreen: React.FC<Props> = ({ patient, onNavigate, onOpenEmergen
       myAptDesc: 'View tokens & active queues',
       myRecords: 'Medical Records',
       myRecordsDesc: 'Doctor prescriptions & history',
+      complaints: 'Grievances / Complaints',
+      complaintsDesc: 'File & track citizen complaints',
+      callServices: 'Call & Helplines',
+      callServicesDesc: 'Direct dial & request callback',
+      careTimeline: 'Care Timeline & History',
+      careTimelineDesc: 'Calls, chats, tickets & visits',
+      socialAwareness: 'Health Awareness & Drives',
+      socialAwarenessDesc: 'Vaccination drives, posters, reels & alerts',
+      healthCamps: 'Free Health Camps',
+      healthCampsDesc: 'Eye, dental, maternal & NCD screening camps',
+      followUpTracking: 'Referral Follow-up',
+      followUpTrackingDesc: 'ASHA visits, hospital status & timeline',
       activeAptTitle: 'Your Active Appointment',
       tokenBadge: 'Token #',
       viewAll: 'View All',
@@ -59,9 +73,6 @@ export const HomeScreen: React.FC<Props> = ({ patient, onNavigate, onOpenEmergen
     hi: {
       greeting: `नमस्ते, ${patient?.fullName?.split(' ')[0] || 'मरीज'} 👋`,
       question: 'आज आप कैसा महसूस कर रहे हैं?',
-      triageCardTitle: 'एआई लक्षण मूल्यांकन और ट्राइएज',
-      triageCardDesc: 'अपने लक्षण बताएं, घाव या दाने की फोटो अपलोड करें और तुरंत उचित चिकित्सा मार्गदर्शन प्राप्त करें।',
-      triageBtn: 'मूल्यांकन शुरू करें',
       quickActions: 'स्वास्थ्य सेवाएं',
       findPHC: 'नजदीकी पीएचसी',
       findPHCDesc: 'निकटतम स्वास्थ्य केंद्र खोजें',
@@ -75,6 +86,18 @@ export const HomeScreen: React.FC<Props> = ({ patient, onNavigate, onOpenEmergen
       myAptDesc: 'टोकन और स्थिति देखें',
       myRecords: 'मेडिकल रिकॉर्ड',
       myRecordsDesc: 'पर्चे और जांच रिपोर्ट',
+      complaints: 'शिकायत व निवारण',
+      complaintsDesc: 'शिकायत दर्ज करें व स्थिति देखें',
+      callServices: 'कॉल व हेल्पलाइन',
+      callServicesDesc: 'सीधा डायल व कॉल-बैक अनुरोध',
+      careTimeline: 'देखभाल समयरेखा व इतिहास',
+      careTimelineDesc: 'कॉल, चैट, टिकट व डॉक्टर परामर्श',
+      socialAwareness: 'स्वास्थ्य जागरूकता व अभियान',
+      socialAwarenessDesc: 'टीकाकरण अभियान, पोस्टर, वीडियो व अलर्ट',
+      healthCamps: 'मुफ्त स्वास्थ्य शिविर',
+      healthCampsDesc: 'नेत्र, दंत, मातृ एवं गैर-संचारी रोग जांच शिविर',
+      followUpTracking: 'रेफरल फॉलो-अप ट्रैकिंग',
+      followUpTrackingDesc: 'आशा विजिट, अस्पताल स्थिति व समयरेखा',
       activeAptTitle: 'आपकी सक्रिय अपॉइंटमेंट',
       tokenBadge: 'टोकन #',
       viewAll: 'सभी देखें',
@@ -85,9 +108,6 @@ export const HomeScreen: React.FC<Props> = ({ patient, onNavigate, onOpenEmergen
     kn: {
       greeting: `ನಮಸ್ಕಾರ, ${patient?.fullName?.split(' ')[0] || 'ರೋಗಿ'} 👋`,
       question: 'ಇಂದು ನಿಮ್ಮ ಆರೋಗ್ಯ ಹೇಗಿದೆ?',
-      triageCardTitle: 'ಎಐ ರೋಗಲಕ್ಷಣ ಮೌಲ್ಯಮಾಪನ ಮತ್ತು ಟ್ರಯೇಜ್',
-      triageCardDesc: 'ನಿಮ್ಮ ರೋಗಲಕ್ಷಣಗಳನ್ನು ವಿವರಿಸಿ, ಗಾಯ ಅಥವಾ ದದ್ದುಗಳ ಫೋಟೋ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ ಮತ್ತು ತಕ್ಷಣ ಪ್ರಾಥಮಿಕ ಸಲಹೆ ಪಡೆಯಿರಿ.',
-      triageBtn: 'ಮೌಲ್ಯಮಾಪನ ಪ್ರಾರಂಭಿಸಿ',
       quickActions: 'ತ್ವರಿತ ಆರೋಗ್ಯ ಸೇವೆಗಳು',
       findPHC: 'ಹತ್ತಿರದ ಪಿಹೆಚ್‌ಸಿ (PHC)',
       findPHCDesc: 'ಹತ್ತಿರದ ಆರೋಗ್ಯ ಕೇಂದ್ರ ಮತ್ತು ಮಾರ್ಗ',
@@ -101,6 +121,14 @@ export const HomeScreen: React.FC<Props> = ({ patient, onNavigate, onOpenEmergen
       myAptDesc: 'ಟೋಕನ್ ಮತ್ತು ಸರತಿ ಸಾಲು ವೀಕ್ಷಿಸಿ',
       myRecords: 'ವೈದ್ಯಕೀಯ ದಾಖಲೆಗಳು',
       myRecordsDesc: 'ವೈದ್ಯರ ಪ್ರಿಸ್ಕ್ರಿಪ್ಷನ್ ಮತ್ತು ಇತಿಹಾಸ',
+      complaints: 'ದೂರು ಮತ್ತು ಪರಿಹಾರ',
+      complaintsDesc: 'ದೂರು ಸಲ್ಲಿಸಿ ಮತ್ತು ಸ್ಥಿತಿ ನೋಡಿ',
+      callServices: 'ಕರೆ ಮತ್ತು ಸಹಾಯವಾಣಿ',
+      callServicesDesc: 'ನೇರ ಕರೆ ಮತ್ತು ಕಾಲ್-ಬ್ಯಾಕ್ ವಿನಂತಿ',
+      careTimeline: 'ಆರೋಗ್ಯ ಇತಿಹಾಸ ಮತ್ತು ಟೈಮ್‌ಲೈನ್',
+      careTimelineDesc: 'ಕರೆಗಳು, ಚಾಟ್‌ಗಳು ಮತ್ತು ವೈದ್ಯರ ಭೇಟಿ',
+      healthCamps: 'ಉಚಿತ ಆರೋಗ್ಯ ಶಿಬಿರಗಳು',
+      healthCampsDesc: 'ಕಣ್ಣು, ದಂತ, ತಾಯಿ ಮತ್ತು ಮಗು ತಪಾಸಣೆ ಶಿಬಿರಗಳು',
       activeAptTitle: 'ನಿಮ್ಮ ಸಕ್ರಿಯ ಅಪಾಯಿಂಟ್‌ಮೆಂಟ್',
       tokenBadge: 'ಟೋಕನ್ #',
       viewAll: 'ಎಲ್ಲವನ್ನೂ ವೀಕ್ಷಿಸಿ',
@@ -108,7 +136,7 @@ export const HomeScreen: React.FC<Props> = ({ patient, onNavigate, onOpenEmergen
       advisoryTitle: 'ಪ್ರಾಥಮಿಕ ಆರೋಗ್ಯ ಸಲಹೆ',
       advisoryDesc: 'ಮಳೆಗಾಲದ ಮುನ್ನೆಚ್ಚರಿಕೆ: ಎಲ್ಲಾ ಪಿಹೆಚ್‌ಸಿ ಕೇಂದ್ರಗಳಲ್ಲಿ ಉಚಿತ ಡೆಂಗ್ಯೂ ತಪಾಸಣೆ ಮತ್ತು ಒಆರ್‌ಎಸ್ (ORS) ಲಭ್ಯವಿದೆ.',
     },
-  }[lang];
+  });
 
   useEffect(() => {
     loadHomeData();
@@ -184,21 +212,91 @@ export const HomeScreen: React.FC<Props> = ({ patient, onNavigate, onOpenEmergen
         <PhoneCall size={16} color="#dc2626" />
       </div>
 
-      {/* AI Symptom Assessment Hero Banner */}
-      <div className="triage-banner">
-        <div className="banner-pill">
-          <Sparkles size={13} />
-          <span>AI Clinical Triage</span>
+
+      {/* Real-Time Human Health Assistant Banner */}
+      <div
+        style={{
+          background: 'linear-gradient(135deg, #0f766e, #0d9488)',
+          borderRadius: '16px',
+          padding: '16px',
+          color: '#ffffff',
+          boxShadow: '0 4px 12px rgba(13, 148, 136, 0.25)',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: 'rgba(255, 255, 255, 0.2)',
+              padding: '3px 10px',
+              borderRadius: '20px',
+              fontSize: '11px',
+              fontWeight: 700,
+            }}
+          >
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#34d399' }} />
+            <span>Human Health Worker • Real-Time</span>
+          </div>
+          <span style={{ fontSize: '11px', fontWeight: 600, color: '#ccfbf1' }}>
+            ⚡ Avg wait &lt; 1 min
+          </span>
         </div>
-        <h2>{t.triageCardTitle}</h2>
-        <p>{t.triageCardDesc}</p>
-        <button
-          className="btn-start-triage"
-          onClick={() => onNavigate('symptoms')}
-        >
-          <HeartPulse size={16} />
-          {t.triageBtn}
-        </button>
+
+        <h3 style={{ fontSize: '15px', fontWeight: 800, margin: '0 0 4px 0' }}>
+          Talk to Health Assistant (ASHA / ANM / CHO)
+        </h3>
+        <p style={{ fontSize: '12px', color: '#ccfbf1', margin: '0 0 12px 0', lineHeight: 1.4 }}>
+          Connect with real human healthcare staff for maternal advice, lab reports, medicine queries & WebRTC audio calls.
+        </p>
+
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button
+            onClick={() => onNavigate('assistant-chat')}
+            style={{
+              flex: 1,
+              background: '#ffffff',
+              border: 'none',
+              borderRadius: '10px',
+              padding: '8px 12px',
+              fontSize: '12px',
+              fontWeight: 800,
+              color: '#0f766e',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            }}
+          >
+            <MessageSquare size={14} />
+            <span>Start Live Chat</span>
+          </button>
+
+          <button
+            onClick={() => onNavigate('assistant-chat', { autoCall: true })}
+            style={{
+              background: 'rgba(255, 255, 255, 0.2)',
+              border: '1px solid rgba(255, 255, 255, 0.4)',
+              borderRadius: '10px',
+              padding: '8px 14px',
+              fontSize: '12px',
+              fontWeight: 700,
+              color: '#ffffff',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+            }}
+          >
+            <Phone size={14} />
+            <span>Call</span>
+          </button>
+        </div>
       </div>
 
       {/* Active Appointment Preview Card */}
@@ -313,6 +411,81 @@ export const HomeScreen: React.FC<Props> = ({ patient, onNavigate, onOpenEmergen
             <div>
               <h4>{t.myRecords}</h4>
               <p>{t.myRecordsDesc}</p>
+            </div>
+          </div>
+
+          <div className="quick-card" onClick={() => onNavigate('complaints')}>
+            <div className="quick-icon-wrapper" style={{ background: '#e0f2f1' }}>
+              <AlertCircle size={20} color="#0f766e" />
+            </div>
+            <div>
+              <h4>{t.complaints}</h4>
+              <p>{t.complaintsDesc}</p>
+            </div>
+          </div>
+
+          <div className="quick-card" onClick={() => onNavigate('calls')}>
+            <div className="quick-icon-wrapper" style={{ background: '#ccfbf1' }}>
+              <PhoneCall size={20} color="#0f766e" />
+            </div>
+            <div>
+              <h4>{t.callServices}</h4>
+              <p>{t.callServicesDesc}</p>
+            </div>
+          </div>
+
+          <div className="quick-card" onClick={() => onNavigate('timeline')}>
+            <div className="quick-icon-wrapper" style={{ background: '#f0fdfa' }}>
+              <History size={20} color="#0d9488" />
+            </div>
+            <div>
+              <h4>{t.careTimeline}</h4>
+              <p>{t.careTimelineDesc}</p>
+            </div>
+          </div>
+
+          <div className="quick-card" onClick={() => onNavigate('awareness')}>
+            <div className="quick-icon-wrapper" style={{ background: 'linear-gradient(135deg, #ccfbf1, #e0f2fe)' }}>
+              <Sparkles size={20} color="#0f766e" />
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <h4>{t.socialAwareness}</h4>
+                <span style={{ fontSize: '9px', background: '#fee2e2', color: '#b91c1c', padding: '1px 5px', borderRadius: '4px', fontWeight: 800 }}>
+                  DRIVES
+                </span>
+              </div>
+              <p>{t.socialAwarenessDesc}</p>
+            </div>
+          </div>
+
+          <div className="quick-card" onClick={() => onNavigate('camps')}>
+            <div className="quick-icon-wrapper" style={{ background: 'linear-gradient(135deg, #e0f2fe, #ccfbf1)' }}>
+              <Tent size={20} color="#0f766e" />
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <h4>{t.healthCamps}</h4>
+                <span style={{ fontSize: '9px', background: '#dcfce7', color: '#166534', padding: '1px 5px', borderRadius: '4px', fontWeight: 800 }}>
+                  FREE
+                </span>
+              </div>
+              <p>{t.healthCampsDesc}</p>
+            </div>
+          </div>
+
+          <div className="quick-card" onClick={() => onNavigate('followups')}>
+            <div className="quick-icon-wrapper" style={{ background: 'linear-gradient(135deg, #e0f2fe, #f0fdf4)' }}>
+              <HeartPulse size={20} color="#0284c7" />
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <h4>{t.followUpTracking}</h4>
+                <span style={{ fontSize: '9px', background: '#e0f2fe', color: '#0369a1', padding: '1px 5px', borderRadius: '4px', fontWeight: 800 }}>
+                  ASHA
+                </span>
+              </div>
+              <p>{t.followUpTrackingDesc}</p>
             </div>
           </div>
         </div>

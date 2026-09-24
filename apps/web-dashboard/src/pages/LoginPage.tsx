@@ -210,6 +210,36 @@ const DEMO_ACCOUNTS: Record<UserRole, DemoAccount[]> = {
       avatarText: 'AV',
     },
   ],
+  HEALTH_ASSISTANT: [
+    {
+      id: 'asst-001',
+      name: 'Sunita Devi',
+      email: 'sunita.asha@phc.gov.in',
+      phone: '+91 98112 34567',
+      role: 'HEALTH_ASSISTANT',
+      title: 'Senior ASHA Facilitator',
+      specialization: 'Maternal Care, Eldercare & Tele-Triage',
+      phcName: 'Central Urban PHC - Karol Bagh',
+      phcId: 'phc-001',
+      badge: 'ASHA Desk',
+      avatarBg: '#0d9488',
+      avatarText: 'SD',
+    },
+    {
+      id: 'asst-003',
+      name: 'Rajesh Verma',
+      email: 'rajesh.cho@phc.gov.in',
+      phone: '+91 98334 56789',
+      role: 'HEALTH_ASSISTANT',
+      title: 'Community Health Officer (CHO)',
+      specialization: 'NCD & Chronic Care Tracker',
+      phcName: 'Central Urban PHC - Karol Bagh',
+      phcId: 'phc-001',
+      badge: 'CHO Console',
+      avatarBg: '#059669',
+      avatarText: 'RV',
+    },
+  ],
   PATIENT: [],
 };
 
@@ -310,7 +340,7 @@ export const LoginPage: React.FC<Props> = ({ onLoginSuccess, onNavigateToRecepti
           lightBg: '#eff6ff',
           accent: '#3b82f6',
           title: 'Doctor & Medical Officer Portal',
-          desc: 'Clinical OPD queue, AI triage validation, electronic diagnosis & e-prescriptions',
+          desc: 'Clinical OPD queue, pre-checkup review, electronic diagnosis & e-prescriptions',
           icon: <Stethoscope size={24} />,
         };
       case 'PHARMACIST':
@@ -339,6 +369,15 @@ export const LoginPage: React.FC<Props> = ({ onLoginSuccess, onNavigateToRecepti
           title: 'Receptionist & Front Desk Portal',
           desc: 'Patient intake, pre-consultation vitals recording, auto BMI calculation & OPD token assignment',
           icon: <ClipboardList size={24} />,
+        };
+      case 'HEALTH_ASSISTANT':
+        return {
+          primary: '#0d9488',
+          lightBg: '#f0fdfa',
+          accent: '#14b8a6',
+          title: 'Health Assistant & Tele-Care Console',
+          desc: 'Real-time patient chat, live WebRTC voice consultation, rural tele-triage & escalation',
+          icon: <HeartPulse size={24} />,
         };
       default:
         return {
@@ -399,7 +438,7 @@ export const LoginPage: React.FC<Props> = ({ onLoginSuccess, onNavigateToRecepti
           {/* Left Column: Form & Role Tabs */}
           <div className="login-form-card">
             {/* Role Tab Bar */}
-            <div className="role-tab-bar" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
+            <div className="role-tab-bar" style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}>
               <button
                 type="button"
                 className={`role-tab-btn ${selectedRole === 'DOCTOR' ? 'active-doctor' : ''}`}
@@ -445,6 +484,18 @@ export const LoginPage: React.FC<Props> = ({ onLoginSuccess, onNavigateToRecepti
                 <div>
                   <div className="role-tab-label">Reception</div>
                   <div className="role-tab-sub">Front Desk</div>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                className={`role-tab-btn ${selectedRole === 'HEALTH_ASSISTANT' ? 'active-assistant' : ''}`}
+                onClick={() => handleRoleSelect('HEALTH_ASSISTANT')}
+              >
+                <HeartPulse size={18} />
+                <div>
+                  <div className="role-tab-label">Assistant</div>
+                  <div className="role-tab-sub">Tele-Care</div>
                 </div>
               </button>
             </div>

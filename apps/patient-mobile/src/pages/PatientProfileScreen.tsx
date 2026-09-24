@@ -1,11 +1,11 @@
 import React from 'react';
 import { User, HeartPulse, ShieldCheck, AlertCircle, Phone, MapPin, Activity, LogOut, QrCode } from 'lucide-react';
-import { PatientProfile } from '@phc-connect/types';
+import { PatientProfile, AppLanguage } from '@phc-connect/types';
 
 interface Props {
   patient: PatientProfile | null;
   onLogout: () => void;
-  lang: 'en' | 'hi' | 'kn';
+  lang: AppLanguage;
 }
 
 export const PatientProfileScreen: React.FC<Props> = ({ patient, onLogout, lang }) => {

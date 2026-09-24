@@ -5,9 +5,10 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   reason?: string;
+  onOpenPreAlert?: () => void;
 }
 
-export const EmergencyModal: React.FC<Props> = ({ isOpen, onClose, reason }) => {
+export const EmergencyModal: React.FC<Props> = ({ isOpen, onClose, reason, onOpenPreAlert }) => {
   if (!isOpen) return null;
 
   return (
@@ -87,7 +88,7 @@ export const EmergencyModal: React.FC<Props> = ({ isOpen, onClose, reason }) => 
           fontSize: '12px',
           color: '#9f1239',
         }}>
-          <strong>Do not wait for standard OPD.</strong> Dial Emergency Ambulance immediately or proceed to the nearest Trauma Facility / District Hospital.
+          <strong>Do not wait for standard OPD.</strong> Dial Emergency Ambulance immediately or broadcast an ASHA Emergency Pre-Alert.
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -112,6 +113,31 @@ export const EmergencyModal: React.FC<Props> = ({ isOpen, onClose, reason }) => 
             Call Emergency 108 / 112
           </a>
 
+          {onOpenPreAlert && (
+            <button
+              onClick={() => {
+                onClose();
+                onOpenPreAlert();
+              }}
+              style={{
+                background: '#991b1b',
+                color: 'white',
+                border: 'none',
+                padding: '12px',
+                borderRadius: '14px',
+                fontWeight: 700,
+                fontSize: '13px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+              }}
+            >
+              🚨 Broadcast ASHA Emergency Pre-Alert
+            </button>
+          )}
+
           <button
             onClick={onClose}
             style={{
@@ -125,7 +151,7 @@ export const EmergencyModal: React.FC<Props> = ({ isOpen, onClose, reason }) => 
               cursor: 'pointer',
             }}
           >
-            Find Nearest Emergency PHC
+            Close
           </button>
         </div>
       </div>

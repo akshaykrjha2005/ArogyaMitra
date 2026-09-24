@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { UserRole } from '@phc-connect/types';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'phc-connect-secret-key-2026';
+export const JWT_SECRET = process.env.JWT_SECRET || 'phc-connect-secret-key-2026';
 
 export interface AuthRequest extends Request {
   user?: {
@@ -16,6 +16,7 @@ export interface AuthRequest extends Request {
     pharmacistId?: string;
     adminId?: string;
     receptionistId?: string;
+    assistantId?: string;
     phcId?: string;
   };
 }

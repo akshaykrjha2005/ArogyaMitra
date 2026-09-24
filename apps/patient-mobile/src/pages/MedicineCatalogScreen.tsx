@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Pill, Search, CheckCircle2, XCircle, MapPin, Building2, Filter } from 'lucide-react';
+import { AppLanguage } from '@phc-connect/types';
 import { apiClient } from '../services/api';
 
 interface Props {
   onNavigate: (tab: string, extra?: any) => void;
-  lang: 'en' | 'hi' | 'kn';
+  lang: AppLanguage;
 }
 
 export const MedicineCatalogScreen: React.FC<Props> = ({ onNavigate, lang }) => {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, CheckCircle2, Stethoscope, MapPin, ArrowLeft, Sparkles } from 'lucide-react';
-import { PatientProfile, DoctorProfile, PHC, Appointment } from '@phc-connect/types';
+import { PatientProfile, DoctorProfile, PHC, Appointment, AppLanguage, resolveTranslationObject } from '@phc-connect/types';
 import { apiClient } from '../services/api';
 
 interface Props {
@@ -13,7 +13,7 @@ interface Props {
   };
   onSuccess: (appointment: Appointment) => void;
   onCancel: () => void;
-  lang: 'en' | 'hi' | 'kn';
+  lang: AppLanguage;
 }
 
 export const BookAppointmentModal: React.FC<Props> = ({
@@ -33,7 +33,7 @@ export const BookAppointmentModal: React.FC<Props> = ({
   const [loading, setLoading] = useState(false);
   const [confirmedApt, setConfirmedApt] = useState<Appointment | null>(null);
 
-  const t = {
+  const t = resolveTranslationObject(lang, {
     en: {
       title: 'Schedule Doctor Appointment',
       subtitle: 'Instant OPD queue token generation',
@@ -73,7 +73,7 @@ export const BookAppointmentModal: React.FC<Props> = ({
       confirmedSub: 'ನಿಮ್ಮ ಒಪಿಡಿ ಸಮಾಲೋಚನೆ ಟೋಕನ್ ರಚಿಸಲಾಗಿದೆ.',
       tokenLabel: 'ನಿಮ್ಮ ಸರತಿ ಟೋಕನ್ ಸಂಖ್ಯೆ',
     },
-  }[lang];
+  });
 
   const dates = Array.from({ length: 5 }, (_, i) => {
     const d = new Date();

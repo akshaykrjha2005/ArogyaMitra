@@ -51,6 +51,28 @@ export const apiClient = {
     }
   },
 
+  async put(endpoint: string, data: any) {
+    try {
+      const token = localStorage.getItem('phc_staff_token');
+      const res = await fetch(`${API_BASE}${endpoint}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        return { success: false, error: errData.error || `Request failed with status ${res.status}`, status: res.status };
+      }
+      return await res.json();
+    } catch (err: any) {
+      console.error(`[Dashboard API PUT Error] ${endpoint}:`, err);
+      return { success: false, error: err.message || 'Network error' };
+    }
+  },
+
   async patch(endpoint: string, data: any) {
     try {
       const token = localStorage.getItem('phc_staff_token');

@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Bell, CheckCircle2, AlertTriangle, Calendar, Pill } from 'lucide-react';
+import { X, Bell, CheckCircle2, AlertTriangle, Calendar, Pill, AlertCircle, ShieldCheck } from 'lucide-react';
 import { Notification } from '@phc-connect/types';
 
 interface Props {
@@ -7,6 +7,7 @@ interface Props {
   onClose: () => void;
   notifications: Notification[];
   onMarkAllRead: () => void;
+  onNavigate?: (tab: string, extra?: any) => void;
 }
 
 export const NotificationModal: React.FC<Props> = ({
@@ -14,6 +15,7 @@ export const NotificationModal: React.FC<Props> = ({
   onClose,
   notifications,
   onMarkAllRead,
+  onNavigate,
 }) => {
   if (!isOpen) return null;
 
@@ -26,6 +28,12 @@ export const NotificationModal: React.FC<Props> = ({
         return <Pill size={18} color="#26a69a" />;
       case 'CRITICAL_TRIAGE':
         return <AlertTriangle size={18} color="#d32f2f" />;
+      case 'COMPLAINT_REGISTERED':
+      case 'COMPLAINT_UPDATE':
+      case 'COMPLAINT_ASSIGNED':
+        return <AlertCircle size={18} color="#0f766e" />;
+      case 'COMPLAINT_RESOLVED':
+        return <ShieldCheck size={18} color="#16a34a" />;
       default:
         return <CheckCircle2 size={18} color="#43a047" />;
     }
@@ -111,6 +119,20 @@ export const NotificationModal: React.FC<Props> = ({
             notifications.map((notif) => (
               <div
                 key={notif.id}
+                onClick={() => {
+                  if (onNavigate) {
+                    if (notif.linkUrl?.includes('complaint') || notif.type.startsWith('COMPLAINT')) {
+                      onNavigate('complaints');
+                      onClose();
+                    } else if (notif.linkUrl?.includes('appointment') || notif.type.startsWith('APPOINTMENT')) {
+                      onNavigate('appointments');
+                      onClose();
+                    } else if (notif.linkUrl?.includes('medicine') || notif.type.startsWith('MEDICINE')) {
+                      onNavigate('medicines');
+                      onClose();
+                    }
+                  }
+                }}
                 style={{
                   background: notif.read ? '#f8fafc' : '#f0f7ff',
                   border: `1px solid ${notif.read ? '#e2e8f0' : '#bfdbfe'}`,
@@ -118,6 +140,8 @@ export const NotificationModal: React.FC<Props> = ({
                   padding: '14px',
                   display: 'flex',
                   gap: '12px',
+                  cursor: onNavigate ? 'pointer' : 'default',
+                  transition: 'all 0.15s ease',
                 }}
               >
                 <div style={{

@@ -247,6 +247,16 @@ body {
   color: #0ea5e9;
 }
 
+.role-tab-btn.active-assistant {
+  background: #ffffff;
+  color: #0d9488;
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.15);
+}
+
+.role-tab-btn.active-assistant .role-tab-sub {
+  color: #14b8a6;
+}
+
 /* Role Info Banner */
 .role-info-banner {
   display: flex;

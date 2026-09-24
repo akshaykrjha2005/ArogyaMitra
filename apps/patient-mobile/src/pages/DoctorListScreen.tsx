@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Stethoscope, Clock, MapPin, Calendar, Search, Star, Award, CheckCircle2 } from 'lucide-react';
-import { DoctorProfile } from '@phc-connect/types';
+import { DoctorProfile, AppLanguage, resolveTranslationObject } from '@phc-connect/types';
 import { apiClient } from '../services/api';
 
 interface Props {
   onNavigate: (tab: string, extra?: any) => void;
-  lang: 'en' | 'hi' | 'kn';
+  lang: AppLanguage;
 }
 
 export const DoctorListScreen: React.FC<Props> = ({ onNavigate, lang }) => {
@@ -14,7 +14,7 @@ export const DoctorListScreen: React.FC<Props> = ({ onNavigate, lang }) => {
   const [specFilter, setSpecFilter] = useState('all');
   const [loading, setLoading] = useState(true);
 
-  const t = {
+  const t = resolveTranslationObject(lang, {
     en: {
       title: 'PHC Doctors & Specialists',
       subtitle: 'Check real-time duty status and schedule appointments',
@@ -39,7 +39,7 @@ export const DoctorListScreen: React.FC<Props> = ({ onNavigate, lang }) => {
       bookBtn: 'ಅಪಾಯಿಂಟ್‌ಮೆಂಟ್ ಬುಕ್ ಮಾಡಿ',
       yrsExp: 'ವರ್ಷಗಳ ಅನುಭವ',
     },
-  }[lang];
+  });
 
   useEffect(() => {
     loadDoctors();

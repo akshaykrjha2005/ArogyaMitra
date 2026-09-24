@@ -390,6 +390,8 @@ export class AuthController {
           user = DataStore.users.find((u) => u.role === 'ADMIN');
         } else if (role === 'RECEPTIONIST') {
           user = DataStore.users.find((u) => u.role === 'RECEPTIONIST');
+        } else if (role === 'HEALTH_ASSISTANT') {
+          user = DataStore.users.find((u) => u.role === 'HEALTH_ASSISTANT');
         } else {
           user = DataStore.users.find((u) => u.role === 'PATIENT');
         }
@@ -418,6 +420,9 @@ export class AuthController {
       } else if (user.role === 'RECEPTIONIST') {
         profile = DataStore.receptionists.find((r) => r.userId === user?.id) || DataStore.receptionists[0];
         extraPayload = { receptionistId: profile?.id, phcId: profile?.phcId };
+      } else if (user.role === 'HEALTH_ASSISTANT') {
+        profile = DataStore.healthAssistants.find((a) => a.userId === user?.id) || DataStore.healthAssistants[0];
+        extraPayload = { assistantId: profile?.id, phcId: profile?.phcId };
       }
 
       const token = generateToken({
@@ -459,6 +464,8 @@ export class AuthController {
       profile = DataStore.admins.find((a) => a.userId === user.id) || DataStore.admins[0];
     } else if (user.role === 'RECEPTIONIST') {
       profile = DataStore.receptionists.find((r) => r.userId === user.id) || DataStore.receptionists[0];
+    } else if (user.role === 'HEALTH_ASSISTANT') {
+      profile = DataStore.healthAssistants.find((a) => a.userId === user.id) || DataStore.healthAssistants[0];
     }
 
     res.status(200).json({

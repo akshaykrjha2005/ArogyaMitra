@@ -13,13 +13,14 @@ import {
   PieChart,
   Shield,
   Layers,
+  AlertCircle,
 } from 'lucide-react';
 import { AdminAnalyticsSummary, DoctorProfile, PHC } from '@phc-connect/types';
 import { apiClient } from '../services/api';
 
 interface Props {
-  activeTab?: 'analytics' | 'roster' | 'audit';
-  onSelectTab?: (tab: 'analytics' | 'roster' | 'audit') => void;
+  activeTab?: 'analytics' | 'roster' | 'audit' | 'complaints';
+  onSelectTab?: (tab: 'analytics' | 'roster' | 'audit' | 'complaints') => void;
 }
 
 export const AdminDashboard: React.FC<Props> = ({ activeTab = 'analytics', onSelectTab }) => {
@@ -214,6 +215,22 @@ export const AdminDashboard: React.FC<Props> = ({ activeTab = 'analytics', onSel
           </div>
           <div className="stat-icon" style={{ background: '#fff7ed', color: '#ea580c' }}>
             <AlertTriangle size={22} />
+          </div>
+        </div>
+
+        <div
+          className="stat-card"
+          onClick={() => onSelectTab?.('complaints')}
+          style={{ cursor: onSelectTab ? 'pointer' : 'default', border: '1px solid #ccfbf1' }}
+        >
+          <div>
+            <span className="stat-label">Citizen Grievances</span>
+            <div className="stat-val" style={{ color: '#0f766e' }}>
+              3 Active <span style={{ fontSize: '11px', color: '#16a34a', fontWeight: 700 }}>(1 Resolved)</span>
+            </div>
+          </div>
+          <div className="stat-icon" style={{ background: '#e0f2f1', color: '#0f766e' }}>
+            <AlertCircle size={22} />
           </div>
         </div>
       </div>

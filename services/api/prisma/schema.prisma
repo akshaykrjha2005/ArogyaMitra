@@ -14,6 +14,30 @@ enum UserRole {
   DOCTOR
   PHARMACIST
   ADMIN
+  RECEPTIONIST
+}
+
+enum ComplaintCategory {
+  SERVICE_QUALITY
+  STAFF_BEHAVIOUR
+  MEDICINE_AVAILABILITY
+  FACILITY_CLEANLINESS
+  WAIT_TIME
+  OTHER
+}
+
+enum ComplaintStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum ComplaintPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
 }
 
 enum DoctorStatus {
@@ -62,6 +86,7 @@ model User {
   admin        Admin?
   auditLogs    AuditLog[]
   notifications Notification[]
+  complaints   Complaint[]
 
   @@map("users")
 }
@@ -93,6 +118,7 @@ model PHC {
   inventory         MedicineInventory[]
   medicalRecords    MedicalRecord[]
   transactions      MedicineTransaction[]
+  complaints        Complaint[]
 
   @@map("phcs")
 }
@@ -407,3 +433,231 @@ model AuditLog {
 
   @@map("audit_logs")
 }
+
+model Complaint {
+  id              String             @id @default(uuid())
+  complaintId     String             @unique // e.g. CMP-2026-0001
+  userId          String
+  userName        String
+  userPhone       String?
+  userEmail       String?
+  userRole        UserRole           @default(PATIENT)
+  phcId           String
+  phcName         String
+  category        ComplaintCategory
+  subject         String
+  description     String
+  attachmentUrl   String?
+  attachmentName  String?
+  priority        ComplaintPriority  @default(MEDIUM)
+  status          ComplaintStatus    @default(OPEN)
+  assignedToId    String?
+  assignedToName  String?
+  assignedToRole  UserRole?
+  resolutionNotes String?
+  resolvedAt      DateTime?
+  closedAt        DateTime?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  phc             PHC                @relation(fields: [phcId], references: [id])
+  history         ComplaintHistory[]
+  replies         ComplaintReply[]
+
+  @@map("complaints")
+}
+
+model ComplaintHistory {
+  id          String           @id @default(uuid())
+  complaintId String
+  fromStatus  ComplaintStatus?
+  toStatus    ComplaintStatus
+  actorId     String
+  actorName   String
+  actorRole   UserRole
+  note        String
+  timestamp   DateTime         @default(now())
+
+  complaint   Complaint        @relation(fields: [complaintId], references: [id], onDelete: Cascade)
+
+  @@map("complaint_history")
+}
+
+model ComplaintReply {
+  id          String    @id @default(uuid())
+  complaintId String
+  authorId    String
+  authorName  String
+  authorRole  UserRole
+  message     String
+  isInternal  Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+
+  complaint   Complaint @relation(fields: [complaintId], references: [id], onDelete: Cascade)
+
+  @@map("complaint_replies")
+}
+
+enum CallbackStatus {
+  Pending
+  Called
+  Missed
+  Completed
+  Cancelled
+}
+
+enum CallOutcome {
+  CONNECTED
+  BUSY
+  NO_ANSWER
+  FAILED
+  CALLBACK_RESOLVED
+}
+
+model CallbackRequest {
+  id                String         @id @default(uuid())
+  requestId         String         @unique // e.g. CB-2026-0001
+  patientId         String?
+  name              String
+  phone             String
+  reason            String
+  preferredTime     String
+  phcId             String?
+  status            CallbackStatus @default(Pending)
+  assignedStaffId   String?
+  assignedStaffName String?
+  notes             String?
+  callAttempts      Int            @default(0)
+  lastAttemptAt     DateTime?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  patient           Patient?       @relation(fields: [patientId], references: [id])
+  phc               PHC?           @relation(fields: [phcId], references: [id])
+  callLogs          CallLog[]
+
+  @@map("callback_requests")
+}
+
+model CallLog {
+  id                String       @id @default(uuid())
+  callSessionId     String?
+  callerName        String
+  callerPhone       String
+  receiverName      String
+  receiverPhone     String
+  receiverRole      String
+  direction         String       // INBOUND or OUTBOUND
+  purpose           String
+  outcome           CallOutcome  @default(CONNECTED)
+  durationSeconds   Int          @default(0)
+  notes             String?
+  callbackRequestId String?
+  phcId             String?
+  timestamp         DateTime     @default(now())
+
+  callbackRequest   CallbackRequest? @relation(fields: [callbackRequestId], references: [id])
+  phc               PHC?             @relation(fields: [phcId], references: [id])
+
+  @@map("call_logs")
+}
+
+enum FollowUpStatus {
+  PENDING
+  OVERDUE
+  COMPLETED
+  MISSED
+  CANCELLED
+}
+
+enum PatientConditionState {
+  IMPROVED
+  STABLE
+  DETERIORATING
+  CRITICAL
+  RECOVERED
+}
+
+enum ReferralTreatmentStatus {
+  REFERRED
+  CONSULTATION_COMPLETED
+  UNDER_TREATMENT
+  ADMITTED
+  DISCHARGED
+  COMPLETED
+}
+
+enum MedicationAdherenceLevel {
+  FULL
+  PARTIAL
+  NON_ADHERENT
+}
+
+model PatientFollowUp {
+  id                      String                  @id @default(uuid())
+  referralId              String
+  patientId               String
+  patientName             String
+  patientAge              Int
+  patientGender           String
+  patientPhone            String?
+  patientAbhaId           String?
+  patientVillage          String
+  patientAddress          String?
+  ashaWorkerId            String
+  ashaWorkerName          String
+  ashaWorkerPhone         String?
+  referringPhcId          String
+  referringPhcName        String
+  higherPhcId             String
+  higherPhcName           String
+  condition               String
+  category                String                  @default("GENERAL")
+  referralDate            DateTime                @default(now())
+  referralReason          String
+  referralTreatmentStatus ReferralTreatmentStatus @default(REFERRED)
+  higherPhcDoctorId       String?
+  higherPhcDoctorName     String?
+  higherPhcDoctorNotes    String?
+  higherPhcUpdatedAt      DateTime?
+  scheduledDueDate        String
+  followUpDate            String?
+  nextVisitDate           String?
+  status                  FollowUpStatus          @default(PENDING)
+  isOverdue               Boolean                 @default(false)
+  daysOverdue             Int                     @default(0)
+  conditionUpdate         PatientConditionState?
+  vitals                  String?                 // JSON encoded vitals
+  medicinesTaken          String                  // JSON array
+  adherenceRate           MedicationAdherenceLevel @default(FULL)
+  notes                   String
+  reminderSent            Boolean                 @default(false)
+  reminderSentAt          DateTime?
+  createdAt               DateTime                @default(now())
+  updatedAt               DateTime                @updatedAt
+
+  timelineEvents          FollowUpTimelineEvent[]
+
+  @@map("patient_follow_ups")
+}
+
+model FollowUpTimelineEvent {
+  id              String           @id @default(uuid())
+  followUpId      String
+  type            String
+  title           String
+  description     String
+  performedBy     String
+  role            String
+  facilityName    String?
+  timestamp       DateTime         @default(now())
+  notes           String?
+  metadata        String?          // JSON encoded metadata
+
+  followUp        PatientFollowUp  @relation(fields: [followUpId], references: [id], onDelete: Cascade)
+
+  @@map("follow_up_timeline_events")
+}
+
+

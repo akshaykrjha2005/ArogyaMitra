@@ -127,14 +127,12 @@ export class DoctorController {
     }
 
     const previousRecords = DataStore.medicalRecords.filter((r) => r.patientId === patient.id);
-    const recentAssessments = DataStore.symptomAssessments.filter((s) => s.patientId === patient.id);
     const appointments = DataStore.appointments.filter((a) => a.patientId === patient.id);
 
     res.status(200).json({
       success: true,
       patient,
       previousRecords,
-      recentAssessments,
       appointments,
     });
   }

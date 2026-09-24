@@ -14,8 +14,11 @@ import {
   HeartPulse,
   Send,
   Sparkles,
+  Ticket,
+  PhoneCall,
+  MessageSquare,
 } from 'lucide-react';
-import { DoctorProfile, DoctorAvailabilityStatus, Appointment, MedicalRecord, PrescriptionItem, ReferralType, PatientProfile } from '@phc-connect/types';
+import { DoctorProfile, DoctorAvailabilityStatus, Appointment, MedicalRecord, PrescriptionItem, ReferralType, PatientProfile, OnCallSupportTicket } from '@phc-connect/types';
 import { apiClient } from '../services/api';
 import { DoctorScheduleView } from './DoctorScheduleView';
 import { DoctorEHRView } from './DoctorEHRView';
@@ -40,6 +43,7 @@ export const DoctorDashboard: React.FC<Props> = ({ doctorId, activeTab = 'opd', 
   });
   const [waitingPatients, setWaitingPatients] = useState<Appointment[]>([]);
   const [inConsultation, setInConsultation] = useState<Appointment[]>([]);
+  const [escalatedTickets, setEscalatedTickets] = useState<OnCallSupportTicket[]>([]);
   const [activeAppointment, setActiveAppointment] = useState<Appointment | null>(null);
   const [patientDetails, setPatientDetails] = useState<any>(null);
 
@@ -78,12 +82,16 @@ export const DoctorDashboard: React.FC<Props> = ({ doctorId, activeTab = 'opd', 
 
   const loadDoctorData = async () => {
     try {
-      const [docRes, queueRes] = await Promise.all([
+      const [docRes, queueRes, ticketsRes] = await Promise.all([
         apiClient.get(`/doctors/${doctorId}`),
         apiClient.get(`/doctors/${doctorId}/queue`),
+        apiClient.get('/support-tickets', { status: 'ESCALATED' }),
       ]);
 
       if (docRes.success) setDoctor(docRes.doctor);
+      if (ticketsRes.success && ticketsRes.tickets) {
+        setEscalatedTickets(ticketsRes.tickets);
+      }
       if (queueRes.success) {
         setQueueMetrics(queueRes.metrics);
         setWaitingPatients(queueRes.waitingPatients || []);
@@ -98,6 +106,35 @@ export const DoctorDashboard: React.FC<Props> = ({ doctorId, activeTab = 'opd', 
     } catch (err) {
       console.error(err);
     }
+  };
+
+  const handleSelectEscalatedTicket = (ticket: OnCallSupportTicket) => {
+    const now = new Date().toISOString();
+    const tempApt: Appointment = {
+      id: `apt-esc-${ticket.id}`,
+      appointmentNumber: `ESC-${ticket.ticketNumber.slice(-4)}`,
+      patientId: ticket.patientId,
+      patientName: ticket.patientName,
+      patientAge: ticket.patientAge || 25,
+      patientGender: (ticket.patientGender as any) || 'Female',
+      patientPhone: ticket.patientPhone || '',
+      doctorId: doctorId,
+      doctorName: doctor?.fullName || 'Doctor',
+      doctorSpecialization: doctor?.specialization || 'General Medicine',
+      phcId: doctor?.phcId || ticket.phcId || 'phc-001',
+      phcName: doctor?.phcName || ticket.phcName || 'Central Urban PHC',
+      tokenNumber: 99,
+      date: now.split('T')[0],
+      timeSlot: 'Tele-Escalation',
+      status: 'In Consultation',
+      reasonForVisit: `${ticket.subject} (Escalated by ${ticket.assignedStaffName || ticket.creatorName}): ${ticket.notes}`,
+      symptoms: ticket.tags,
+      criticalityLevel: ticket.priority === 'CRITICAL' || ticket.priority === 'HIGH' ? 'HIGH' : 'MEDIUM',
+      createdAt: now,
+      updatedAt: now,
+    };
+    selectPatientForConsultation(tempApt);
+    setChiefComplaints(`${ticket.subject} - ${ticket.notes}`);
   };
 
   const constructCurrentPrescriptionData = (recordNumber?: string, consultationDate?: string): PrescriptionData => {
@@ -432,16 +469,86 @@ export const DoctorDashboard: React.FC<Props> = ({ doctorId, activeTab = 'opd', 
 
           {/* Queue & OPD Consultation Console */}
           <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: '20px', alignItems: 'start' }}>
-            {/* Left Column: Live Queue */}
-            <div className="dash-card">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a' }}>
-                  Patient Queue ({waitingPatients.length + inConsultation.length})
-                </h3>
-                <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>Real-time</span>
-              </div>
+            {/* Left Column: Live Queue & Tele-Care Escalations */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {/* Tele-Care Escalations Box */}
+              {escalatedTickets.length > 0 && (
+                <div
+                  style={{
+                    background: '#faf5ff',
+                    border: '1px solid #e9d5ff',
+                    borderRadius: '16px',
+                    padding: '16px',
+                    boxShadow: '0 2px 8px rgba(124, 58, 237, 0.06)',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Ticket size={16} color="#7c3aed" />
+                      <h4 style={{ fontSize: '14px', fontWeight: 800, color: '#581c87', margin: 0 }}>
+                        On-Call Escalations ({escalatedTickets.length})
+                      </h4>
+                    </div>
+                    <span style={{ fontSize: '10px', background: '#f3e8ff', color: '#7c3aed', fontWeight: 800, padding: '2px 6px', borderRadius: '4px' }}>
+                      URGENT
+                    </span>
+                  </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <p style={{ fontSize: '11px', color: '#6b21a8', margin: '0 0 10px 0', lineHeight: 1.4 }}>
+                    Health assistants & ASHA workers escalated these tele-consultations for doctor intervention:
+                  </p>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {escalatedTickets.map((tkt) => (
+                      <div
+                        key={tkt.id}
+                        onClick={() => handleSelectEscalatedTicket(tkt)}
+                        style={{
+                          background: '#ffffff',
+                          border: '1px solid #d8b4fe',
+                          borderRadius: '10px',
+                          padding: '10px',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
+                          <strong style={{ fontSize: '12px', color: '#0f172a' }}>{tkt.patientName}</strong>
+                          <span
+                            style={{
+                              fontSize: '9px',
+                              fontWeight: 800,
+                              background: tkt.priority === 'CRITICAL' || tkt.priority === 'HIGH' ? '#fee2e2' : '#fef3c7',
+                              color: tkt.priority === 'CRITICAL' || tkt.priority === 'HIGH' ? '#991b1b' : '#92400e',
+                              padding: '1px 5px',
+                              borderRadius: '4px',
+                            }}
+                          >
+                            {tkt.priority}
+                          </span>
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#6b21a8', fontWeight: 600 }}>
+                          {tkt.subject}
+                        </div>
+                        <div style={{ fontSize: '10px', color: '#64748b', marginTop: '2px' }}>
+                          By {tkt.assignedStaffName || tkt.creatorName} ({tkt.assignedStaffRole || tkt.creatorRole})
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Live OPD Queue Card */}
+              <div className="dash-card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a' }}>
+                    Patient Queue ({waitingPatients.length + inConsultation.length})
+                  </h3>
+                  <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>Real-time</span>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {inConsultation.map((apt) => (
                   <div
                     key={apt.id}
@@ -519,6 +626,7 @@ export const DoctorDashboard: React.FC<Props> = ({ doctorId, activeTab = 'opd', 
                 )}
               </div>
             </div>
+          </div>
 
             {/* Right Column: Active Consultation Room */}
             <div className="dash-card">

@@ -11,11 +11,17 @@ import {
   Globe,
   Pill,
   User,
+  PhoneCall,
+  PhoneForwarded,
+  MessageCircle,
+  History,
+  Sparkles,
+  Tent,
+  Siren,
 } from 'lucide-react';
-import { PatientProfile, Notification, AppLanguage } from '@phc-connect/types';
+import { PatientProfile, Notification, AppLanguage, getSavedLanguage, saveSelectedLanguage, NAV_TRANSLATIONS, ALL_INDIAN_LANGUAGES } from '@phc-connect/types';
 import { apiClient } from './services/api';
 import { HomeScreen } from './pages/HomeScreen';
-import { SymptomChatbotScreen } from './pages/SymptomChatbotScreen';
 import { PHCMapScreen } from './pages/PHCMapScreen';
 import { DoctorListScreen } from './pages/DoctorListScreen';
 import { BookAppointmentModal } from './pages/BookAppointmentModal';
@@ -23,22 +29,26 @@ import { MyAppointmentsScreen } from './pages/MyAppointmentsScreen';
 import { MedicalRecordsScreen } from './pages/MedicalRecordsScreen';
 import { MedicineCatalogScreen } from './pages/MedicineCatalogScreen';
 import { PatientProfileScreen } from './pages/PatientProfileScreen';
+import { MyComplaintsScreen } from './pages/MyComplaintsScreen';
+import { CallServicesScreen } from './pages/CallServicesScreen';
+import { HealthAssistantChatScreen } from './pages/HealthAssistantChatScreen';
+import { PatientTimelineScreen } from './pages/PatientTimelineScreen';
+import { SocialAwarenessScreen } from './pages/SocialAwarenessScreen';
+import { HealthCampsScreen } from './pages/HealthCampsScreen';
+import { EmergencyPreAlertScreen } from './pages/EmergencyPreAlertScreen';
+import { FollowUpTrackingScreen } from './pages/FollowUpTrackingScreen';
 import { AuthScreen } from './pages/AuthScreen';
 import { EmergencyModal } from './components/EmergencyModal';
 import { NotificationModal } from './components/NotificationModal';
-
-const navLabels: Record<AppLanguage, { home: string; triage: string; nearby: string; bookings: string; records: string }> = {
-  en: { home: 'Home', triage: 'Triage', nearby: 'Nearby', bookings: 'Bookings', records: 'Records' },
-  hi: { home: 'होम', triage: 'जांच', nearby: 'नजदीकी', bookings: 'बुकिंग', records: 'रिकॉर्ड्स' },
-  kn: { home: 'ಮುಖಪುಟ', triage: 'ತಪಾಸಣೆ', nearby: 'ಹತ್ತಿರದ', bookings: 'ಬುಕಿಂಗ್', records: 'ದಾಖಲೆಗಳು' },
-};
+import { LanguageSelectorModal } from './components/LanguageSelectorModal';
 
 export const App: React.FC = () => {
   const [patient, setPatient] = useState<PatientProfile | null>(null);
   const [activeTab, setActiveTab] = useState<string>('home');
   const [navigationExtra, setNavigationExtra] = useState<any>(null);
   const [isMobileFrame, setIsMobileFrame] = useState<boolean>(() => typeof window !== 'undefined' && window.innerWidth > 768);
-  const [lang, setLang] = useState<AppLanguage>('en');
+  const [lang, setLang] = useState<AppLanguage>(() => getSavedLanguage());
+  const [isLanguageModalOpen, setIsLanguageModalOpen] = useState<boolean>(false);
   const [isEmergencyOpen, setIsEmergencyOpen] = useState(false);
   const [emergencyReason, setEmergencyReason] = useState<string | undefined>(undefined);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
@@ -152,29 +162,101 @@ export const App: React.FC = () => {
             </div>
 
             <div className="header-actions">
-              <div className="lang-switcher-pill">
-                <button
-                  className={`lang-option ${lang === 'en' ? 'active' : ''}`}
-                  onClick={() => setLang('en')}
-                  title="English"
-                >
-                  EN
-                </button>
-                <button
-                  className={`lang-option ${lang === 'hi' ? 'active' : ''}`}
-                  onClick={() => setLang('hi')}
-                  title="हिन्दी (Hindi)"
-                >
-                  हिन्दी
-                </button>
-                <button
-                  className={`lang-option ${lang === 'kn' ? 'active' : ''}`}
-                  onClick={() => setLang('kn')}
-                  title="ಕನ್ನಡ (Kannada)"
-                >
-                  ಕನ್ನಡ
-                </button>
-              </div>
+              <button
+                className="lang-select-btn"
+                onClick={() => setIsLanguageModalOpen(true)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '20px',
+                  padding: '5px 10px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  color: '#0f766e',
+                  cursor: 'pointer',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+                  transition: 'all 0.15s ease',
+                }}
+                title="Change Language (22 Official Indian Languages & Regional Dialects)"
+              >
+                <Globe size={14} color="#0d9488" />
+                <span>{ALL_INDIAN_LANGUAGES.find((l) => l.code === lang)?.nativeName || 'English'}</span>
+              </button>
+
+              <button
+                className={`icon-badge-btn ${activeTab === 'assistant-chat' ? 'active-icon-btn' : ''}`}
+                onClick={() => handleNavigate('assistant-chat')}
+                title="Talk to Human Health Assistant (ASHA / CHO)"
+                style={{
+                  background: activeTab === 'assistant-chat' ? '#ccfbf1' : '#f8fafc',
+                  color: activeTab === 'assistant-chat' ? '#0f766e' : '#334155',
+                }}
+              >
+                <MessageCircle size={18} />
+              </button>
+
+              <button
+                className={`icon-badge-btn ${activeTab === 'calls' ? 'active-icon-btn' : ''}`}
+                onClick={() => handleNavigate('calls')}
+                title="Call Services & Helplines"
+                style={{
+                  background: activeTab === 'calls' ? '#ccfbf1' : '#f8fafc',
+                  color: activeTab === 'calls' ? '#0f766e' : '#334155',
+                }}
+              >
+                <PhoneCall size={18} />
+              </button>
+
+              <button
+                className={`icon-badge-btn ${activeTab === 'timeline' ? 'active-icon-btn' : ''}`}
+                onClick={() => handleNavigate('timeline')}
+                title="Care Timeline & Communication History"
+                style={{
+                  background: activeTab === 'timeline' ? '#ccfbf1' : '#f8fafc',
+                  color: activeTab === 'timeline' ? '#0f766e' : '#334155',
+                }}
+              >
+                <History size={18} />
+              </button>
+
+              <button
+                className={`icon-badge-btn ${activeTab === 'awareness' ? 'active-icon-btn' : ''}`}
+                onClick={() => handleNavigate('awareness')}
+                title="Public Health Awareness & Vaccination Drives"
+                style={{
+                  background: activeTab === 'awareness' ? '#ccfbf1' : '#f8fafc',
+                  color: activeTab === 'awareness' ? '#0f766e' : '#334155',
+                }}
+              >
+                <Sparkles size={18} />
+              </button>
+
+              <button
+                className={`icon-badge-btn ${activeTab === 'emergency-pre-alert' ? 'active-icon-btn' : ''}`}
+                onClick={() => handleNavigate('emergency-pre-alert')}
+                title="ASHA Emergency Pre-Alert"
+                style={{
+                  background: activeTab === 'emergency-pre-alert' ? '#fee2e2' : '#f8fafc',
+                  color: activeTab === 'emergency-pre-alert' ? '#dc2626' : '#334155',
+                }}
+              >
+                <Siren size={18} />
+              </button>
+
+              <button
+                className={`icon-badge-btn ${activeTab === 'camps' ? 'active-icon-btn' : ''}`}
+                onClick={() => handleNavigate('camps')}
+                title="Free Community Health Camps & Passes"
+                style={{
+                  background: activeTab === 'camps' ? '#ccfbf1' : '#f8fafc',
+                  color: activeTab === 'camps' ? '#0f766e' : '#334155',
+                }}
+              >
+                <Tent size={18} />
+              </button>
 
               <button
                 className="icon-badge-btn"
@@ -198,26 +280,47 @@ export const App: React.FC = () => {
           {/* Screen Routing */}
           <main className="app-content">
             {!patient ? (
-              <AuthScreen
-                lang={lang}
-                onSuccess={(newPat) => {
-                  setPatient(newPat);
-                  setActiveTab('home');
-                }}
-              />
+              activeTab === 'awareness' ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <button
+                    onClick={() => setActiveTab('home')}
+                    style={{
+                      alignSelf: 'flex-start',
+                      background: 'none',
+                      border: 'none',
+                      color: '#0f766e',
+                      fontWeight: 700,
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      padding: '4px 0',
+                    }}
+                  >
+                    ← {lang === 'hi' ? 'लॉगिन स्क्रीन पर वापस जाएं' : 'Back to Login / Registration'}
+                  </button>
+                  <SocialAwarenessScreen
+                    onNavigate={handleNavigate}
+                    lang={lang}
+                    initialCategory={navigationExtra?.category}
+                    initialType={navigationExtra?.type}
+                  />
+                </div>
+              ) : (
+                <AuthScreen
+                  lang={lang}
+                  onBrowsePublicAwareness={() => setActiveTab('awareness')}
+                  onSuccess={(newPat) => {
+                    setPatient(newPat);
+                    setActiveTab('home');
+                  }}
+                />
+              )
             ) : (
               <>
                 {activeTab === 'home' && (
                   <HomeScreen
-                    patient={patient}
-                    onNavigate={handleNavigate}
-                    onOpenEmergency={handleEmergencyTrigger}
-                    lang={lang}
-                  />
-                )}
-
-                {activeTab === 'symptoms' && (
-                  <SymptomChatbotScreen
                     patient={patient}
                     onNavigate={handleNavigate}
                     onOpenEmergency={handleEmergencyTrigger}
@@ -277,6 +380,79 @@ export const App: React.FC = () => {
                     lang={lang}
                   />
                 )}
+
+                {activeTab === 'complaints' && (
+                  <MyComplaintsScreen
+                    patient={patient}
+                    onNavigate={handleNavigate}
+                    lang={lang}
+                    initialOpenNewModal={navigationExtra?.openNew || false}
+                  />
+                )}
+
+                {activeTab === 'calls' && (
+                  <CallServicesScreen
+                    patient={patient}
+                    onNavigate={handleNavigate}
+                    lang={lang}
+                    initialTab={navigationExtra?.initialTab || 'directory'}
+                  />
+                )}
+
+                {activeTab === 'assistant-chat' && (
+                  <HealthAssistantChatScreen
+                    patient={patient}
+                    onNavigate={handleNavigate}
+                    lang={lang}
+                    initialAssistantId={navigationExtra?.assistantId}
+                  />
+                )}
+
+                {activeTab === 'timeline' && (
+                  <PatientTimelineScreen
+                    patient={patient}
+                    onNavigate={handleNavigate}
+                    lang={lang}
+                    initialFilter={navigationExtra?.filter || 'ALL'}
+                  />
+                )}
+
+                {activeTab === 'awareness' && (
+                  <SocialAwarenessScreen
+                    onNavigate={handleNavigate}
+                    lang={lang}
+                    initialCategory={navigationExtra?.category}
+                    initialType={navigationExtra?.type}
+                  />
+                )}
+
+                {activeTab === 'camps' && (
+                  <HealthCampsScreen
+                    patient={patient}
+                    onNavigate={handleNavigate}
+                    lang={lang}
+                    initialCampId={navigationExtra?.campId}
+                  />
+                )}
+
+                {activeTab === 'emergency-pre-alert' && (
+                  <EmergencyPreAlertScreen
+                    onBack={() => handleNavigate('home')}
+                    lang={lang}
+                    currentPatientId={patient?.id}
+                    currentPatientName={patient?.fullName}
+                  />
+                )}
+
+                {activeTab === 'followups' && (
+                  <FollowUpTrackingScreen
+                    patient={patient}
+                    onNavigate={handleNavigate}
+                    onBack={() => handleNavigate('home')}
+                    lang={lang}
+                    initialPatientId={navigationExtra?.patientId}
+                  />
+                )}
               </>
             )}
           </main>
@@ -289,15 +465,15 @@ export const App: React.FC = () => {
                 onClick={() => handleNavigate('home')}
               >
                 <Home size={20} />
-                <span>{navLabels[lang].home}</span>
+                <span>{(NAV_TRANSLATIONS[lang] || NAV_TRANSLATIONS['en']).home}</span>
               </button>
 
               <button
-                className={`nav-item ${activeTab === 'symptoms' ? 'active' : ''}`}
-                onClick={() => handleNavigate('symptoms')}
+                className={`nav-item ${activeTab === 'assistant-chat' ? 'active' : ''}`}
+                onClick={() => handleNavigate('assistant-chat')}
               >
                 <HeartPulse size={20} />
-                <span>{navLabels[lang].triage}</span>
+                <span>{(NAV_TRANSLATIONS[lang] || NAV_TRANSLATIONS['en']).assistant}</span>
               </button>
 
               <button
@@ -305,7 +481,7 @@ export const App: React.FC = () => {
                 onClick={() => handleNavigate('phcs')}
               >
                 <MapPin size={20} />
-                <span>{navLabels[lang].nearby}</span>
+                <span>{(NAV_TRANSLATIONS[lang] || NAV_TRANSLATIONS['en']).nearby}</span>
               </button>
 
               <button
@@ -313,7 +489,7 @@ export const App: React.FC = () => {
                 onClick={() => handleNavigate('appointments')}
               >
                 <Calendar size={20} />
-                <span>{navLabels[lang].bookings}</span>
+                <span>{(NAV_TRANSLATIONS[lang] || NAV_TRANSLATIONS['en']).bookings}</span>
               </button>
 
               <button
@@ -321,16 +497,28 @@ export const App: React.FC = () => {
                 onClick={() => handleNavigate('records')}
               >
                 <FileText size={20} />
-                <span>{navLabels[lang].records}</span>
+                <span>{(NAV_TRANSLATIONS[lang] || NAV_TRANSLATIONS['en']).records}</span>
               </button>
             </nav>
           )}
+
+          {/* Language Selector Modal */}
+          <LanguageSelectorModal
+            isOpen={isLanguageModalOpen}
+            currentLang={lang}
+            onSelectLanguage={(newLang) => {
+              setLang(newLang);
+              saveSelectedLanguage(newLang);
+            }}
+            onClose={() => setIsLanguageModalOpen(false)}
+          />
 
           {/* Emergency Alert Modal */}
           <EmergencyModal
             isOpen={isEmergencyOpen}
             onClose={() => setIsEmergencyOpen(false)}
             reason={emergencyReason}
+            onOpenPreAlert={() => handleNavigate('emergency-pre-alert')}
           />
 
           {/* Notification Drawer */}
@@ -339,6 +527,7 @@ export const App: React.FC = () => {
             onClose={() => setIsNotifOpen(false)}
             notifications={notifications}
             onMarkAllRead={handleMarkAllRead}
+            onNavigate={handleNavigate}
           />
         </div>
       </div>

@@ -12,12 +12,12 @@ import {
   CheckCircle2,
   Calendar,
 } from 'lucide-react';
-import { PHC, DoctorProfile } from '@phc-connect/types';
+import { PHC, DoctorProfile, AppLanguage, resolveTranslationObject } from '@phc-connect/types';
 import { apiClient } from '../services/api';
 
 interface Props {
   onNavigate: (tab: string, extra?: any) => void;
-  lang: 'en' | 'hi' | 'kn';
+  lang: AppLanguage;
 }
 
 export const PHCMapScreen: React.FC<Props> = ({ onNavigate, lang }) => {
@@ -27,7 +27,7 @@ export const PHCMapScreen: React.FC<Props> = ({ onNavigate, lang }) => {
   const [selectedPHC, setSelectedPHC] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const t = {
+  const t = resolveTranslationObject(lang, {
     en: {
       title: 'Nearby Health Centres (PHCs)',
       subtitle: 'Distance, available doctors & medicine availability from your location',
@@ -64,7 +64,7 @@ export const PHCMapScreen: React.FC<Props> = ({ onNavigate, lang }) => {
       bookApt: 'ಅಪಾಯಿಂಟ್‌ಮೆಂಟ್ ಬುಕ್ ಮಾಡಿ',
       directions: 'ಮಾರ್ಗ ಪಡೆಯಿರಿ',
     },
-  }[lang];
+  });
 
   useEffect(() => {
     loadNearbyPHCs();

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { FileText, Stethoscope, Pill, Calendar, Clock, Activity, ShieldCheck, Download, ChevronDown, ChevronUp } from 'lucide-react';
-import { MedicalRecord, PatientProfile } from '@phc-connect/types';
+import { MedicalRecord, PatientProfile, AppLanguage } from '@phc-connect/types';
 import { apiClient } from '../services/api';
 import { PrescriptionPDFGenerator, PrescriptionData } from '../utils/prescriptionPdfGenerator';
 
 interface Props {
   patient: PatientProfile | null;
-  lang: 'en' | 'hi' | 'kn';
+  lang: AppLanguage;
 }
 
 export const MedicalRecordsScreen: React.FC<Props> = ({ patient, lang }) => {

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, MapPin, CheckCircle2, XCircle, RefreshCw, AlertCircle } from 'lucide-react';
-import { Appointment, AppointmentStatus } from '@phc-connect/types';
+import { Appointment, AppointmentStatus, AppLanguage, resolveTranslationObject } from '@phc-connect/types';
 import { apiClient } from '../services/api';
 
 interface Props {
   onNavigate: (tab: string, extra?: any) => void;
-  lang: 'en' | 'hi' | 'kn';
+  lang: AppLanguage;
 }
 
 export const MyAppointmentsScreen: React.FC<Props> = ({ onNavigate, lang }) => {
@@ -13,7 +13,7 @@ export const MyAppointmentsScreen: React.FC<Props> = ({ onNavigate, lang }) => {
   const [activeTab, setActiveTab] = useState<'upcoming' | 'completed' | 'cancelled'>('upcoming');
   const [loading, setLoading] = useState(true);
 
-  const t = {
+  const t = resolveTranslationObject(lang, {
     en: {
       title: 'My Appointments',
       subtitle: 'Track consultation status, token numbers & live queues',
@@ -50,7 +50,7 @@ export const MyAppointmentsScreen: React.FC<Props> = ({ onNavigate, lang }) => {
       cancelBtn: 'ರದ್ದುಮಾಡಿ',
       token: 'ಟೋಕನ್ #',
     },
-  }[lang];
+  });
 
   useEffect(() => {
     loadAppointments();

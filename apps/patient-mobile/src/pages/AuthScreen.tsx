@@ -15,11 +15,12 @@ import {
   Edit3,
 } from 'lucide-react';
 import { apiClient } from '../services/api';
-import { PatientProfile } from '@phc-connect/types';
+import { PatientProfile, AppLanguage } from '@phc-connect/types';
 
 interface Props {
   onSuccess: (patient: PatientProfile) => void;
-  lang: 'en' | 'hi' | 'kn';
+  onBrowsePublicAwareness?: () => void;
+  lang: AppLanguage;
 }
 
 const DEMO_PATIENTS = [
@@ -29,7 +30,7 @@ const DEMO_PATIENTS = [
   { name: 'Pooja Sharma', phone: '+91 98765 43213', id: 'PHC-PAT-2026-0004', area: 'Narela, Delhi' },
 ];
 
-export const AuthScreen: React.FC<Props> = ({ onSuccess, lang }) => {
+export const AuthScreen: React.FC<Props> = ({ onSuccess, onBrowsePublicAwareness, lang }) => {
   // Mode: login vs register
   const [isRegister, setIsRegister] = useState(false);
   // Step: 1 = Input Phone/Details, 2 = Enter & Verify OTP
@@ -913,6 +914,40 @@ export const AuthScreen: React.FC<Props> = ({ onSuccess, lang }) => {
             )}
           </button>
         </form>
+      )}
+
+      {/* Public Health Awareness Portal Quick Link */}
+      {onBrowsePublicAwareness && (
+        <div
+          onClick={onBrowsePublicAwareness}
+          style={{
+            marginTop: '20px',
+            background: 'linear-gradient(135deg, #f0fdfa 0%, #e0f2fe 100%)',
+            border: '1px solid #99f6e4',
+            borderRadius: '14px',
+            padding: '12px 16px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            boxShadow: '0 2px 8px rgba(13, 148, 136, 0.08)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '20px' }}>📢</span>
+            <div>
+              <div style={{ fontSize: '12px', fontWeight: 800, color: '#0f766e' }}>
+                {lang === 'hi' ? 'सार्वजनिक स्वास्थ्य जागरूकता पोर्टल' : 'Public Health Awareness Portal'}
+              </div>
+              <div style={{ fontSize: '11px', color: '#0369a1', marginTop: '1px' }}>
+                {lang === 'hi'
+                  ? 'टीकाकरण अभियान, डेंगू रोकथाम व स्वास्थ्य गाइड देखें'
+                  : 'Vaccination drives, disease alerts & health posters'}
+              </div>
+            </div>
+          </div>
+          <ArrowRight size={16} color="#0f766e" />
+        </div>
       )}
 
       {/* Security Disclaimer */}
